@@ -115,7 +115,7 @@ async def isAmazingNotLive():
 		threading.Timer(60, isAmazingLive).start()
 	elif twitchrequest.json()['stream'] != None: #If live
 		#Put an announcment here
-		threading.Timer(60, isAmazingNotLive).start()
+		threading.Timer(60, isAmazingNotLive).start() 
 		return;
 		
 	
