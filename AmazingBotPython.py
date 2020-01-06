@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 import threading
 import discord
-import pytz
+from pytz import timezone
 import asyncio
 
 load_dotenv()
@@ -32,11 +32,11 @@ servertimechannel = None
 announcementchannel = None
 
 
-@bot.event 
+@bot.event
 async def on_ready():
 	print(f'{bot.user.name} has connected to Discord')
-	await isAmazingLive()
-#	await serverTime()
+	await isAmazingNotLive()
+	await serverTime()
 	
 @bot.command(name='rank', help = "-rank [Summoner_Name] [region] will return your rank")
 async def rank(ctx, name: str, region: str):
@@ -88,38 +88,45 @@ async def sourcecode(ctx):
 async def shitlist(ctx, addremove = None, user = None):
 	return
 	
-#async def serverTime(): This returns CET but 1 hour earlier than what it currently is. DST issue?
-#	berlin = pytz.timezone('Europe/Berlin')
-#	localtime = berlin.localize(datetime.utcnow())
-#	fmt = '%H:%M %Z'
-#	servertime = localtime.strftime(fmt)
-#	guild = discord.utils.get(bot.guilds, name = leoserver)
-#	servertimechannel = discord.utils.get(guild.voice_channels)
-#	await servertimechannel.edit(name = servertime)
-#	return   
-
+async def serverTime():
+	print("serverTime activated")
+	berlin = datetime.now(timezone('CET'))
+	print(berlin)
+	fmt = '%H:%M %Z'
+	fmt2 ='%s'
+	servertime = berlin.strftime(fmt)
+	minutecheck = berlin.strftime(fmt2)
+	print(minutecheck)
+	guild = discord.utils.get(bot.guilds, name = leoserver)
+	servertimechannel = discord.utils.get(guild.voice_channels)
+	await servertimechannel.edit(name = servertime)
+	await asyncio.sleep(60)
+	print("Server Time timer")
+	await serverTime()
+	
 async def isAmazingLive():
+	guild = discord.utils.get(bot.guilds, name = leoserver)
+	announcementchannel = discord.utils.get(guild.text_channels) #Only returns the first text channel. Fix.
+	print(announcementchannel)
 	twitchrequest = requests.get("https://api.twitch.tv/kraken/streams/" + leo + "?api_verson=5", headers={"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": twitchtoken})
-	print(twitchrequest.json())
 	if twitchrequest.json()['stream'] == None: #If not live
-		threading.Timer(60, isAmazingLive).start()
+		await asyncio.sleep(60)
+		await isAmazingLive()
+		
 	elif twitchrequest.json()['stream'] != None: #If live
-		threading.Timer(60, isAmazingNotLive).start()
-		return;
+		await announcementchannel.send("Amazing is live")
+		await isAmazingNotLive()
+		return; 
 		
 	
 async def isAmazingNotLive():
 	twitchrequest = requests.get("https://api.twitch.tv/kraken/streams/" + leo + "?api_verson=5", headers={"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": twitchtoken})
-	print(twitchrequest.json())
 	if twitchrequest.json()['stream'] == None: #If not live
-		threading.Timer(60, isAmazingLive).start()
+		await isAmazingLive()
 	elif twitchrequest.json()['stream'] != None: #If live
-		#Put an announcment here
-		threading.Timer(60, isAmazingNotLive).start() 
+		await asyncio.sleep(60)
+		await isAmazingNotLive()
 		return;
-		
-	
-
 		
 bot.run(TOKEN)
 
