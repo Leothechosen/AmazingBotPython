@@ -96,7 +96,7 @@ async def shitlist(ctx, addremove = None, user = None):
 #	guild = discord.utils.get(bot.guilds, name = leoserver)
 #	servertimechannel = discord.utils.get(guild.voice_channels)
 #	await servertimechannel.edit(name = servertime)
-#	return  
+#	return   
 
 async def isAmazingLive():
 	twitchrequest = requests.get("https://api.twitch.tv/kraken/streams/" + leo + "?api_verson=5", headers={"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": twitchtoken})
