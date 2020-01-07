@@ -1,4 +1,4 @@
-# AmazingBotPython.py
+# AmazingBotPython.py | Note to self: learn aiohttp
 
 import os
 import random
@@ -12,6 +12,7 @@ import threading
 import discord
 from pytz import timezone
 import asyncio
+import aiohttp
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -34,11 +35,11 @@ announcementchannel = None
 @bot.event
 async def on_ready():
 	print(f'{bot.user.name} has connected to Discord')
-	await isAmazingLive()
 	await theserverTime()
-
-#@bot.event
-#async def on_connect():
+	
+@bot.event
+async def on_connect():
+	await amazingLive()
 
 @bot.command(name='rank', help = "-rank [Summoner_Name] [region] will return your rank")
 async def rank(ctx, name: str, region: str):
@@ -62,22 +63,31 @@ async def rank(ctx, name: str, region: str):
 	region = region_to_valid_region(region)
 	if region == "Invalid Region":
 		ctx.send("The server you entered is invalid, or it's a Garena server")
-	else:				
-		summoneridrequest = requests.get('https://' + region + '.api.riotgames.com/lol/summoner/v4/summoners/by-name/' + name + '?api_key=' + apikey)
-		summonerid = (summoneridrequest.json()['id'])
-		print(summonerid)
-		rankedrequest = requests.get('https://' + region + '.api.riotgames.com/lol/league/v4/entries/by-summoner/' + summonerid + '?api_key=' + apikey)
-		if rankedrequest.json() != []:
-			for x in range(len(rankedrequest.json())):
-				if rankedrequest.json()[x] != None and rankedrequest.json()[x]["queueType"] == "RANKED_SOLO_5x5":
-					message += (rankedrequest.json()[x]["tier"] + " " + rankedrequest.json()[x]["rank"] + " " + str(rankedrequest.json()[x]["leaguePoints"]) + "LP in Ranked Solo\n")
-				elif rankedrequest.json()[x] != None and rankedrequest.json()[x]["queueType"] == "RANKED_FLEX_SR":
-					message += (rankedrequest.json()[x]["tier"] + " " + rankedrequest.json()[x]["rank"] + " " + str(rankedrequest.json()[x]["leaguePoints"]) + "LP in Ranked Flex\n")
+	else:
+		message = ""				
+		async with aiohttp.ClientSession() as session0:
+			async with session0.get("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + apikey) as response:
+				summoneridrequest = await response.json()
+				summonerid = summoneridrequest['id']
+				await session0.close()
+		async with aiohttp.ClientSession() as session1:
+			async with session1.get("https://" + region + ".api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerid + "?api_key=" + apikey) as response:
+				rankedrequest = await response.json()
+				await session1.close()
+		if rankedrequest != []:
+			for x in range(len(rankedrequest)):
+				if rankedrequest[x]["queueType"] == "RANKED_SOLO_5x5":
+					message += (rankedrequest[x]["tier"] + " " + rankedrequest[x]["rank"] + " " + str(rankedrequest[x]["leaguePoints"]) + "LP in Ranked Solo\n")
+				elif rankedrequest[x]["queueType"] == "RANKED_FLEX_SR":
+					message += (rankedrequest[x]["tier"] + " " + rankedrequest[x]["rank"] + " " + str(rankedrequest[x]["leaguePoints"]) + "LP in Ranked Flex\n")
 				else:
 					continue
-		tftrequest = requests.get("https://" + region + ".api.riotgames.com/tft/league/v1/entries/by-summoner/" + summonerid + "?api_key=" + apikey)
-		if tftrequest.json() != []:
-				message += (tftrequest.json()[0]["tier"] + " " + tftrequest.json()[0]["rank"] + " " + str(tftrequest.json()[0]["leaguePoints"]) + "LP in Ranked TFT")
+		async with aiohttp.ClientSession() as session2:
+			async with session2.get("https://" + region + ".api.riotgames.com/tft/league/v1/entries/by-summoner/" + summonerid + "?api_key=" + apikey) as response:
+				tftrequest = await response.json()
+				await session2.close()
+		if tftrequest != []:
+				message += (tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP in Ranked TFT")
 		await ctx.send(name + "\n" + message)
 
 @bot.command(name='register', help = "-register [Summoner_Name] [Region] will allow you to just type -rank in the future to get your rank.")
@@ -93,42 +103,39 @@ async def shitlist(ctx, addremove = None, user = None):
 	return
 	
 async def theserverTime():
-	print("serverTime activated")
-	berlin = datetime.now(timezone('CET'))
-	print(berlin)
-	fmt = '%H:%M %Z'
-	fmt2 ='%s'
-	servertime = berlin.strftime(fmt)
-	minutecheck = berlin.strftime(fmt2)
-	print(minutecheck)
-	guild = discord.utils.get(bot.guilds, name = leoserver)
-	servertimechannel = discord.utils.get(guild.voice_channels)
-	await servertimechannel.edit(name = servertime)
-	await asyncio.sleep(60)
-	print("Server Time timer")
-	await theserverTime()
+	while True:
+		minutecheck = datetime.now(timezone('CET'))
+		fmt = '%H:%M %Z'
+		fmt2 ='%s'
+		minutecheck = minutecheck.strftime(fmt2)
+		minutecheck = int(minutecheck)
+		minutecheck = minutecheck % 60
+		minutecheck = 61 - minutecheck
+		await asyncio.sleep(minutecheck)
+		guild = discord.utils.get(bot.guilds, name = leoserver)
+		servertimechannel = discord.utils.get(guild.voice_channels)
+		berlin = datetime.now(timezone('CET'))
+		berlin = berlin.strftime(fmt)
+		await servertimechannel.edit(name = berlin)
+		await asyncio.sleep(60)
 	
-async def isAmazingLive():
+
+async def amazingLive():
+	streamlive = True # Assume the stream is live
 	guild = discord.utils.get(bot.guilds, name = leoserver)
 	announcementchannel = discord.utils.get(guild.channels, name='test')
-	print(announcementchannel)
-	twitchrequest = requests.get("https://api.twitch.tv/kraken/streams/" + amazing + "?api_verson=5", headers={"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": twitchtoken})
-	if twitchrequest.json()['stream'] == None: #If not live
-		await asyncio.sleep(60)
-		await isAmazingLive()
+	while True:
+		twitchrequest = twitchrequest = requests.get("https://api.twitch.tv/kraken/streams/" + amazing + "?api_verson=5", headers={"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": twitchtoken})
+		if twitchrequest.json()['stream'] == None and streamlive == True: #If not live while code thinks stream is live
+			announcementchannel.send("Amazing is no longer live")
+			streamlive = False
+		elif twitchrequest.json()['stream'] != None and streamlive == False: #If live while code thinks stream isn't live
+			announcementchannel.send("Amazing is live")
+			streamlive = True
 		
-	elif twitchrequest.json()['stream'] != None: #If live
-		await announcementchannel.send("Amazing is live")
-		await isAmazingNotLive()
-	
-async def isAmazingNotLive():
-	twitchrequest = requests.get("https://api.twitch.tv/kraken/streams/" + amazing + "?api_verson=5", headers={"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": twitchtoken})
-	if twitchrequest.json()['stream'] == None: #If not live
-		await announcementchannel.send("Amazing is no longer live")
-		await isAmazingLive()
-	elif twitchrequest.json()['stream'] != None: #If live
 		await asyncio.sleep(60)
-		await isAmazingNotLive()
+		
+		
 		
 async def testdef():
 	print("testdef worked")
