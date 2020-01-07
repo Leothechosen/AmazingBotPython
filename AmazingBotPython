@@ -28,7 +28,7 @@ timechannel = os.getenv('SERVER_TIME_CHANNEL')
 amazingserver = os.getenv('AMAZING_SERVER_NAME')
 leoserver = os.getenv('LEO_TEST_SERVER_NAME')
 announcements = ["Go, get in there!", "Tune in and find out why they call him the Anaconda", "Come watch and soon you'll be Amazing yourself", "Don't knock him before you try him"]
-
+moderators = ["365623187276300288","249856128756875265","163795280867753984","122919363656286212","188044536365187072"]
 
 bot = commands.Bot(command_prefix='-')
 servertimechannel = None
@@ -105,7 +105,16 @@ async def sourcecode(ctx):
 	
 #@bot.command(name='shitlist', help = "Mod command only. [add/remove] [user]")
 #async def shitlist(ctx, addremove = None, user = None):
-#	return
+#	shitlist_file = './shitlist.txt'z
+#	if ctx.author.id in moderators:
+# 		if (addremove == 'add' or addremove == 'remove) and user != None':
+#			shitlist=open(shitlist_file, r+)
+#		else if addremove == None:
+#			await ctx.send(shitlist)
+#		else: 
+#			await ctx.send("Error")
+#	else:
+#		return:
 	
 async def theserverTime():
 	while True:
