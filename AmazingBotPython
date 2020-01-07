@@ -114,7 +114,7 @@ async def sourcecode(ctx):
 #		else: 
 #			await ctx.send("Error")
 #	else:
-#		return:
+#		return
 	
 async def theserverTime():
 	while True:
