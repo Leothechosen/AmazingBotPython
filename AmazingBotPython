@@ -29,6 +29,7 @@ amazingserver = os.getenv('AMAZING_SERVER_NAME')
 leoserver = os.getenv('LEO_TEST_SERVER_NAME')
 announcements = ["Go, get in there!", "Tune in and find out why they call him the Anaconda", "Come watch and soon you'll be Amazing yourself", "Don't knock him before you try him"]
 moderators = ["365623187276300288","249856128756875265","163795280867753984","122919363656286212","188044536365187072"]
+shitlist_file = './shitlist.txt'
 
 bot = commands.Bot(command_prefix='-')
 servertimechannel = None
@@ -74,7 +75,7 @@ async def rank(ctx, name: str, region = None):
 		async with aiohttp.ClientSession() as session:
 			async with session.get("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + apikey) as response:
 				if response.status != 200:
-					await ctx.send("Riot API returned a bad request. Please check for errors in your request and try again")
+					await ctx.send("Riot API returned a bad request. Check for errors in your request, or tell Leo to reset his API key.")
 					return;
 				summoneridrequest = await response.json()
 				summonerid = summoneridrequest['id']
@@ -86,35 +87,68 @@ async def rank(ctx, name: str, region = None):
 			if rankedrequest != []:
 					for x in range(len(rankedrequest)):
 						if rankedrequest[x]["queueType"] == "RANKED_SOLO_5x5":
-							message += (rankedrequest[x]["tier"] + " " + rankedrequest[x]["rank"] + " " + str(rankedrequest[x]["leaguePoints"]) + "LP in Ranked Solo\n")
+							message += ('\n' + rankedrequest[x]["tier"] + " " + rankedrequest[x]["rank"] + " " + str(rankedrequest[x]["leaguePoints"]) + "LP in Ranked Solo ")
+							if "miniSeries" in rankedrequest[x]:
+								message += ("| Promo: ")
+								for y in range(len(rankedrequest[x]["miniSeries"]["progress"])):
+									if rankedrequest[x]["miniSeries"]["progress"][y] == 'W':
+										message += (":white_check_mark:")
+									elif rankedrequest[x]["miniSeries"]["progress"][y] == "N":
+										message += (":grey_question:")
+									elif rankedrequset[x]["miniSeries"]["progress"][y] == "L":
+										message += (":x:")
 						elif rankedrequest[x]["queueType"] == "RANKED_FLEX_SR":
-							message += (rankedrequest[x]["tier"] + " " + rankedrequest[x]["rank"] + " " + str(rankedrequest[x]["leaguePoints"]) + "LP in Ranked Flex\n")
+							message += ('\n' + rankedrequest[x]["tier"] + " " + rankedrequest[x]["rank"] + " " + str(rankedrequest[x]["leaguePoints"]) + "LP in Ranked Flex ")
+							if "miniSeries" in rankedrequest[x]:
+								message += ("| Promo: ")
+								for y in range(len(rankedrequest[x]["miniSeries"]["progress"])):
+									if rankedrequest[x]["miniSeries"]["progress"][y] == 'W':
+										message += (":white_check_mark:")
+									elif rankedrequest[x]["miniSeries"]["progress"][y] == "N":
+										message += (":grey_question:")
+									elif rankedrequset[x]["miniSeries"]["progress"][y] == "L":
+										message += (":x:")
 						else:
 							continue
 			if tftrequest != []:
-				message += (tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP in Ranked TFT")
-		await ctx.send(name + "\n" + message)
-
-#@bot.command(name='register', help = "-register [Summoner_Name] [Region] will allow you to just type -rank in the future to get your rank.")
-#async def register(ctx, summoner_name:str, summoner_region:str):
-#	await ctx.send("Register command")
+				message += ('\n' + tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP in Ranked TFT")
+		await ctx.send(name + message)
 	
 @bot.command(name='sourcecode', help = "Links the source code to how I work!")
 async def sourcecode(ctx):
 	await ctx.send("https://www.github.com/Leothechosen/AmazingBotPython")
+
+@bot.group(pass_context=True)
+async def shitlist(ctx):
+	if ctx.invoked_subcommand is None:
+		if str(ctx.author.id) not in moderators:
+			return
+		shitlist = open(shitlist_file, 'r')
+		await ctx.send(shitlist.read())
+		shitlist.close()
+
+@shitlist.command(pass_context=True)
+async def add(ctx, name):
+	if str(ctx.author.id) not in moderators:
+		return
+	shitlist = open(shitlist_file, 'a')
+	shitlist.write('\n' + name)
+	shitlist.close()
+	await ctx.send("Addition successful")
+	return
 	
-#@bot.command(name='shitlist', help = "Mod command only. [add/remove] [user]")
-#async def shitlist(ctx, addremove = None, user = None):
-#	shitlist_file = './shitlist.txt'z
-#	if ctx.author.id in moderators:
-# 		if (addremove == 'add' or addremove == 'remove) and user != None':
-#			shitlist=open(shitlist_file, r+)
-#		else if addremove == None:
-#			await ctx.send(shitlist)
-#		else: 
-#			await ctx.send("Error")
-#	else:
-#		return
+@shitlist.command(pass_context=True)
+async def remove(ctx, name):
+	if str(ctx.author.id) not in moderators:
+		return
+	shitlist = open(shitlist_file, 'r')
+	names = shitlist.readlines()
+	shitlist.close()
+	shitlist = open(shitlist_file, 'w')
+	for line in names:
+		if line.strip("\n") != name:
+			shitlist.write(line)
+	return
 	
 async def theserverTime():
 	while True:
@@ -126,7 +160,7 @@ async def theserverTime():
 		minutecheck = minutecheck % 60
 		minutecheck = 61 - minutecheck
 		await asyncio.sleep(minutecheck)
-		guild = discord.utils.get(bot.guilds, name = leoserver)
+		guild = discord.utils.get(bot.guilds, name = amazingserver)
 		servertimechannel = discord.utils.get(guild.voice_channels)
 		berlin = datetime.now(timezone('CET'))
 		berlin = berlin.strftime(fmt)
@@ -147,7 +181,9 @@ async def amazingLive():
 			streamlive = True
 			continue;
 		await asyncio.sleep(60)
-		
+
 bot.run(TOKEN)
+
+
 
 
