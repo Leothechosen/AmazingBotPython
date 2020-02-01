@@ -265,5 +265,4 @@ async def amazingLive():
 			continue;
 		await asyncio.sleep(60)
 		
-
 bot.run(TOKEN)
