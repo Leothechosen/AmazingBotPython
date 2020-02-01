@@ -14,6 +14,7 @@ from pytz import timezone
 import asyncio
 import aiohttp
 import random
+import logging  
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -95,7 +96,7 @@ async def rank(ctx, name: str, region = None):
 										message += (":white_check_mark:")
 									elif rankedrequest[x]["miniSeries"]["progress"][y] == "N":
 										message += (":grey_question:")
-									elif rankedrequset[x]["miniSeries"]["progress"][y] == "L":
+									elif rankedrequest[x]["miniSeries"]["progress"][y] == "L":
 										message += (":x:")
 							embed.add_field(name="Solo", value=message, inline=False)
 						elif rankedrequest[x]["queueType"] == "RANKED_FLEX_SR":
@@ -107,13 +108,15 @@ async def rank(ctx, name: str, region = None):
 										message += (":white_check_mark:")
 									elif rankedrequest[x]["miniSeries"]["progress"][y] == "N":
 										message += (":grey_question:")
-									elif rankedrequset[x]["miniSeries"]["progress"][y] == "L":
+									elif rankedrequest[x]["miniSeries"]["progress"][y] == "L":
 										message += (":x:")
 							embed.add_field(name="Flex", value=message, inline=False)
 						else:
 							continue
 			if tftrequest != []:
 				embed.add_field(name="TFT", value=tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP",inline=True)
+			if rankedrequest == [] and tftrequest == []:
+				embed.add_field(name="Unranked", value=name + " is unranked in all queues")
 		await ctx.send(embed=embed)
 	
 @bot.command(name='sourcecode', help = "Links the source code to how I work!")
@@ -123,6 +126,78 @@ async def sourcecode(ctx):
 @bot.command(name='sub', help = "Assigns subrole if Twitch integration is one AND user is subbed to Amazing")
 async def sub(ctx):
 	return
+
+@bot.group(pass_context=True)	
+async def esports(ctx):
+	if ctx.invoked_subcommand is None:
+		await ctx.send("How did you find this command? This command is under construction.")
+	return
+		
+@esports.command(pass_context=True)
+async def standings(ctx, league: str):
+	league = league.upper()
+	embed = discord.Embed(title = league, color=0xa9152b)
+	ordinal_message = ""
+	teams_message = ""
+	records_message = ""
+	def leagueId(league):
+		switcher = {
+			"LCS":"103462439438682788",
+			"LEC":"103462459318635408",
+			"LCK":"103540363364808496",
+			"LPL":"103462420723438502",
+			"OPL":"103535401218775284",
+			"CBLOL":"103478354329449186",
+			"TCL":"103495775740097550",
+			"LJL":"103540397353089204",
+			"LCSA":"103462454280724883"
+				}
+		return switcher.get(league, "Invalid League")
+	league = leagueId(league)
+	if league == "Invalid League":
+		await ctx.send("League not supported. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
+		return
+	async with aiohttp.ClientSession() as session:
+		headers = {'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'}
+		async with session.get("https://esports-api.lolesports.com/persisted/gw/getStandings?hl=en-US&tournamentId=" + league, headers=headers) as response:
+			esports_response = await response.json()
+			rankings = (esports_response["data"]["standings"][0]["stages"][0]["sections"][0]["rankings"])
+			for x in range(len(rankings)):
+				ordinal = str(rankings[x]['ordinal'])
+				def integerPrefix(ordinal):
+					switcher = {
+						"1":"1st",
+						"2":"2nd",
+						"3":"3rd",
+						"4":"4th",
+						"5":"5th",
+						"6":"6th",
+						"7":"7th",
+						"8":"8th",
+						"9":"9th",
+						"10":"10th"
+						}
+					return switcher.get(ordinal, "???")
+				ordinal = integerPrefix(ordinal)
+				for y in range(len(rankings[x]["teams"])):
+					ordinal_message += (ordinal + '\n')
+					#teams = rankings[x]["teams"][y]["name"]
+					#message += ordinal + "  |  " + str(teams) + "  |  " + str(rankings[x]["teams"][y]["record"]["wins"]) + "-" + str(rankings[x]["teams"][y]["record"]["losses"]) + "\n"
+			embed.add_field(name="Place", value=ordinal_message, inline=True)
+			for x in range(len(rankings)):
+				for y in range(len(rankings[x]["teams"])):
+					teams_message += str(rankings[x]["teams"][y]["name"]) + '\n'
+			embed.add_field(name="Team", value=teams_message, inline=True)
+			for x in range(len(rankings)):
+				for y in range(len(rankings[x]["teams"])):
+					records_message += str(rankings[x]["teams"][y]["record"]["wins"]) + "-" + str(rankings[x]["teams"][y]["record"]["losses"]) + '\n'
+			embed.add_field(name="Record", value=records_message, inline=True)
+		await session.close()
+	await ctx.send(embed=embed)
+
+@bot.command(name='servertime')
+async def restartservertime(ctx):
+	await theserverTime()
 
 @bot.group(pass_context=True)
 async def shitlist(ctx):
@@ -138,7 +213,7 @@ async def add(ctx, name):
 	if str(ctx.author.id) not in moderators:
 		return
 	shitlist = open(shitlist_file, 'a')
-	shitlist.write('\n' + name)
+	shitlist.write(name+'\n')
 	shitlist.close()
 	await ctx.send("Addition successful")
 	return
@@ -157,15 +232,15 @@ async def remove(ctx, name):
 	return
 	
 async def theserverTime():
+	minutecheck = datetime.now(timezone('CET'))
+	fmt = '%H:%M %Z'
+	fmt2 ='%s'
+	minutecheck = minutecheck.strftime(fmt2)
+	minutecheck = int(minutecheck)
+	minutecheck = minutecheck % 60
+	minutecheck = 61 - minutecheck
+	await asyncio.sleep(minutecheck)
 	while True:
-		minutecheck = datetime.now(timezone('CET'))
-		fmt = '%H:%M %Z'
-		fmt2 ='%s'
-		minutecheck = minutecheck.strftime(fmt2)
-		minutecheck = int(minutecheck)
-		minutecheck = minutecheck % 60
-		minutecheck = 61 - minutecheck
-		await asyncio.sleep(minutecheck)
 		guild = discord.utils.get(bot.guilds, name = amazingserver)
 		servertimechannel = discord.utils.get(guild.voice_channels)
 		berlin = datetime.now(timezone('CET'))
@@ -175,22 +250,20 @@ async def theserverTime():
 	
 async def amazingLive():
 	streamlive = True # Assume the stream is live
+	guild = discord.utils.get(bot.guilds, name = amazingserver)
+	announcementchannel = discord.utils.get(guild.channels, name='announcements')
 	while True:
 		twitchrequest = twitchrequest = requests.get("https://api.twitch.tv/kraken/streams/" + amazing + "?api_verson=5", headers={"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": twitchtoken})
-		guild = discord.utils.get(bot.guilds, name = amazingserver)
-		announcementchannel = discord.utils.get(guild.channels, name='announcements')
 		if twitchrequest.json()['stream'] == None and streamlive == True: #If not live while code thinks stream is live
 			streamlive = False
+			print("Amazing has gone offline")
 			continue;
 		elif twitchrequest.json()['stream'] != None and streamlive == False: #If live while code thinks stream isn't live
 			await announcementchannel.send("@everyone " + random.choice(announcements) + " https://www.twitch.tv/amazingx")
 			streamlive = True
+			print("Amazing has gone online")
 			continue;
 		await asyncio.sleep(60)
 		
 
 bot.run(TOKEN)
-
-
-
-
