@@ -4,13 +4,13 @@ This is a Discord Bot for League of Legends former pro player Amazing's Discord 
 
 Commands (Prefix is -) :
 1. league
-	-rank [Summoner_name][server]
+   -rank [Summoner_name][server]
 2. lor 
-	-leaderboard [lor_region]
+   -leaderboard [lor_region]
 3. esports 
-	-standings [league]
-	-team [team]
-	-schedule [league]
+   -standings [league]
+   -team [team]
+   -schedule [league]
 4. sourcecode
 5. poll [question], [answer1], [answer2], ..., [answer9]
 
