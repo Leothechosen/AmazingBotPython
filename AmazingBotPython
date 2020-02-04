@@ -298,6 +298,28 @@ async def remove(ctx, name):
 		if line.strip("\n") != name:
 			shitlist.write(line)
 	return
+
+@bot.command(name='poll')
+async def poll(ctx, *, arguments):
+	reactions = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']	
+	answers = ""
+	arguments = arguments.split(',', 9)
+	question = arguments[0].title()
+	if question[-1] != '?':
+		question += '?'
+	for x in range(len(arguments)):
+		if x == 0:
+			continue
+		else:
+			answers += str(x) + ": " + arguments[x].title() + '\n'
+	embed = discord.Embed(title = "Question: " + question, color = 0xa9152b)
+	embed.add_field(name = "Answers", value = answers, inline=False)
+	msg = await ctx.send(embed=embed)
+	for x in range(len(arguments)):
+		if x == len(arguments) - 1:
+			continue
+		else:
+			await discord.Message.add_reaction(msg, reactions[x])
 	
 @bot.command(name='sourcecode', help = "Links the source code to how I work!")
 async def sourcecode(ctx):
