@@ -155,7 +155,7 @@ async def leaderboard(ctx, region = None):
 @bot.group(pass_context=True, help = "Subcommands: standings and team")	
 async def esports(ctx):
 	if ctx.invoked_subcommand is None:
-		await ctx.send("Subcommands are standings and team.")
+		await ctx.send("Subcommands are standings, team and schedule. See pinned message for usage.	")
 	return
 		
 @esports.command(pass_context=True)
@@ -229,15 +229,16 @@ async def schedule(ctx, league: str):
 					starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S")
 					if currenttime + timedelta(days=7) > starttime:
 						remainingtime = str(starttime - currenttime)
-						if "days" in remainingtime: 
+						print(remainingtime)
+						if "day" in remainingtime: 
 							remainingtime = remainingtime[:-6] + ' hours\n'
 						else:
-							if remainingtime[1] == ":" and remainingtime[0] == '1':
-								remainingtime = remainingtime[0:1] + " hour, " + remainingtime[3:4] + " minutes\n"
+							if remainingtime[0:1] == '1:':
+								remainingtime = remainingtime[0] + " hour, " + remainingtime[3:4] + " minutes\n"
 							elif remainingtime[1] == ":":
-								remainingtime = remainingtime[0] + " hours, " + remainingtime[3:4] + " minutes\n"
+								remainingtime = remainingtime[0] + " hours, " + remainingtime[3:5] + " minutes\n"
 							else:
-								remainingtime = remainingtime[0:1] + " hours, " + remainingtime[3:4] + " minutes\n"
+								remainingtime = remainingtime[0:2] + " hours, " + remainingtime[3:5] + " minutes\n"
 						schedule_message += remainingtime
 						teams_message += "**" + scheduled_matches[x]["match"]["teams"][0]["name"] + "**" + " vs " + "**" + scheduled_matches[x]["match"]["teams"][1]["name"] + '**\n'
 			embed.add_field(name = "Time Remaining", value = schedule_message, inline = True)
@@ -301,10 +302,12 @@ async def remove(ctx, name):
 
 @bot.command(name='poll')
 async def poll(ctx, *, arguments):
-	reactions = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']	
+	reaction_list = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']	
 	answers = ""
-	arguments = arguments.split(',', 9)
+	answers_vote = ""
+	arguments = arguments.split(', ', 9)
 	question = arguments[0].title()
+	remainingseconds = 12
 	if question[-1] != '?':
 		question += '?'
 	for x in range(len(arguments)):
@@ -314,12 +317,46 @@ async def poll(ctx, *, arguments):
 			answers += str(x) + ": " + arguments[x].title() + '\n'
 	embed = discord.Embed(title = "Question: " + question, color = 0xa9152b)
 	embed.add_field(name = "Answers", value = answers, inline=False)
+	embed.add_field(name = "Time Remaining", value = str(remainingseconds*5) + " seconds", inline=False)
 	msg = await ctx.send(embed=embed)
 	for x in range(len(arguments)):
 		if x == len(arguments) - 1:
 			continue
 		else:
-			await discord.Message.add_reaction(msg, reactions[x])
+			await discord.Message.add_reaction(msg, reaction_list[x])	
+	while remainingseconds >= 0:
+		if remainingseconds == 0:
+			embed.set_field_at(1, name = "Time Remaining", value = "Poll has finished", inline=False)
+			await discord.Message.edit(msg, embed=embed)
+			msg = await discord.User.fetch_message(ctx.channel, msg.id)
+			reactors = {}
+			print(msg.reactions[0].count)
+			for react in msg.reactions:
+				reactors.setdefault(react.count, [])
+				reactors[react.count].append(react.emoji)
+			print(reactors)
+			max_reacts = max(reactors,key=int)
+			if len(reactors[max_reacts]) != 1:
+				tie_message = 'There was a tie between: "'
+				for x in range(len(reactors[max_reacts])):
+					if x != len(reactors[max_reacts]) - 1:
+						tie_message += arguments[reaction_list.index(reactors[max_reacts][x])+1] + '" and "'
+					else:
+						tie_message += arguments[reaction_list.index(reactors[max_reacts][x])+1] + '"'
+				embed.add_field(name = "Tie!", value = tie_message, inline=False)
+			else:
+				embed.add_field(name = "Winner", value = arguments[reaction_list.index(reactors[max_reacts][0])+1] + " wins!", inline=False)
+			for x in range(len(arguments)):
+				if x != 0:
+					answers_vote += str(x) + ": " + arguments[x].title() + " - " + str(msg.reactions[x-1].count) + " votes\n"
+			embed.set_field_at(0, name = "Answers",value = answers_vote, inline=False)
+			await discord.Message.edit(msg, embed=embed)
+			remainingseconds -= 1
+		else:
+			embed.set_field_at(1, name = "Time Remaining", value = str(remainingseconds*5) + " seconds", inline=False)
+			await discord.Message.edit(msg, embed=embed)
+			remainingseconds -= 1
+			await asyncio.sleep(5)
 	
 @bot.command(name='sourcecode', help = "Links the source code to how I work!")
 async def sourcecode(ctx):
