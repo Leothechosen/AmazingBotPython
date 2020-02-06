@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from discord.ext import commands	
 
-
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('LEO_TEST_SERVER_NAME')
@@ -281,11 +280,9 @@ async def team(ctx, team = None):
 	await ctx.send(embed=embed)
 
 @bot.group(pass_context=True)
+@commands.has_role("Moderators")
 async def modlist(ctx):
 	if ctx.invoked_subcommand is None:
-		ismod = await moderatorcheck(ctx)
-		if ismod != True:
-			return
 		modlist = open(modlist_file, 'r')
 		await ctx.send(modlist.read())
 		modlist.close()
@@ -293,9 +290,6 @@ async def modlist(ctx):
 
 @modlist.command(pass_context=True)
 async def add(ctx, name = None):
-	ismod = await moderatorcheck(ctx)
-	if ismod != True or name == None:
-		return
 	modlist = open(modlist_file, 'a')
 	modlist.write(name+'\n')
 	modlist.close()
@@ -304,9 +298,6 @@ async def add(ctx, name = None):
 	
 @modlist.command(pass_context=True)
 async def remove(ctx, name = None):
-	ismod = await moderatorcheck(ctx)
-	if ismod != True or name == None:
-		return
 	modlist = open(modlist_file, 'r')
 	names = modlist.readlines()
 	modlist.close()
@@ -412,10 +403,8 @@ async def sub(ctx):
 	return
 	
 @bot.command(name='restartservertime')
+@commands.has_role("Moderators")
 async def restartservertime(ctx):
-	ismod = await moderatorcheck(ctx)
-	if ismod != True:
-		return
 	await ctx.send("Restarting the clock...")
 	await theserverTime()
 	
@@ -495,11 +484,6 @@ async def amazingLive():
 		await asyncio.sleep(60)
 
 async def sanitizeinput(inputs):
-	return re.sub(r'[^a-zA-Z-]', "", inputs)
-	
-async def moderatorcheck(ctx):
-	moderatorRole = discord.utils.get(ctx.message.guild.roles, name = "Moderators")
-	if moderatorRole in ctx.author.roles:
-		return True
+	return re.sub(r'[^a-zA-Z0-9-]', "", inputs)
 	
 bot.run(TOKEN)
