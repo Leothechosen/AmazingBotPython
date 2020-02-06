@@ -347,7 +347,10 @@ async def poll(ctx, *, arguments):
 				embed.add_field(name = "Winner", value = arguments[reaction_list.index(reactors[max_reacts][0])+1] + " wins!", inline=False)
 			for x in range(len(msg.reactions)):
 				if msg.reactions[x].emoji in reaction_list:
-					answers_vote += str(msg.reactions[x].count-1) + " votes\n"
+					if msg.reactions[x].count == 2:
+						answers_vote += str(msg.reactions[x].count-1) + " vote\n"
+					else:
+						answers_vote += str(msg.reactions[x].count-1) + " votes\n"
 			embed.insert_field_at(1, name = "Votes", value = answers_vote, inline=True)
 			await discord.Message.edit(msg, embed=embed)
 			remainingseconds -= 1
