@@ -306,8 +306,8 @@ async def poll(ctx, *, arguments):
 	answers = ""
 	answers_vote = ""
 	arguments = arguments.split(', ', 9)
-	question = arguments[0].title()
-	remainingseconds = 12
+	question = arguments[0].title() 
+	remainingseconds = 1 
 	if question[-1] != '?':
 		question += '?'
 	for x in range(len(arguments)):
@@ -316,7 +316,7 @@ async def poll(ctx, *, arguments):
 		else:
 			answers += str(x) + ": " + arguments[x].title() + '\n'
 	embed = discord.Embed(title = "Question: " + question, color = 0xa9152b)
-	embed.add_field(name = "Answers", value = answers, inline=False)
+	embed.add_field(name = "Answers", value = answers, inline=True)
 	embed.add_field(name = "Time Remaining", value = str(remainingseconds*5) + " seconds", inline=False)
 	msg = await ctx.send(embed=embed)
 	for x in range(len(arguments)):
@@ -325,16 +325,15 @@ async def poll(ctx, *, arguments):
 		else:
 			await discord.Message.add_reaction(msg, reaction_list[x])	
 	while remainingseconds >= 0:
-		if remainingseconds == 0:
+		if remainingseconds <= 0:
 			embed.set_field_at(1, name = "Time Remaining", value = "Poll has finished", inline=False)
 			await discord.Message.edit(msg, embed=embed)
 			msg = await discord.User.fetch_message(ctx.channel, msg.id)
 			reactors = {}
-			print(msg.reactions[0].count)
 			for react in msg.reactions:
-				reactors.setdefault(react.count, [])
-				reactors[react.count].append(react.emoji)
-			print(reactors)
+				if react.emoji in reaction_list:
+					reactors.setdefault(react.count, [])
+					reactors[react.count].append(react.emoji)
 			max_reacts = max(reactors,key=int)
 			if len(reactors[max_reacts]) != 1:
 				tie_message = 'There was a tie between: "'
@@ -346,10 +345,10 @@ async def poll(ctx, *, arguments):
 				embed.add_field(name = "Tie!", value = tie_message, inline=False)
 			else:
 				embed.add_field(name = "Winner", value = arguments[reaction_list.index(reactors[max_reacts][0])+1] + " wins!", inline=False)
-			for x in range(len(arguments)):
-				if x != 0:
-					answers_vote += str(x) + ": " + arguments[x].title() + " - " + str(msg.reactions[x-1].count) + " votes\n"
-			embed.set_field_at(0, name = "Answers",value = answers_vote, inline=False)
+			for x in range(len(msg.reactions)):
+				if msg.reactions[x].emoji in reaction_list:
+					answers_vote += str(msg.reactions[x].count-1) + " votes\n"
+			embed.insert_field_at(1, name = "Votes", value = answers_vote, inline=True)
 			await discord.Message.edit(msg, embed=embed)
 			remainingseconds -= 1
 		else:
