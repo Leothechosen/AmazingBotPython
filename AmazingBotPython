@@ -16,6 +16,7 @@ import aiohttp
 import random
 import logging
 import re
+import math
 
 
 load_dotenv()
@@ -30,8 +31,7 @@ amazingserverid = int(os.getenv('AMAZING_SERVER_ID'))
 servertimechannel = int(os.getenv('SERVER_TIME_CHANNEL'))
 announcementchannel = int(os.getenv('AMAZING_ANNOUNCEMENT_ID'))
 announcements = ["Go, get in there!", "Tune in and find out why they call him the Anaconda", "Come watch and soon you'll be Amazing yourself", "Don't knock him before you try him"]
-moderators = ["365623187276300288","249856128756875265","163795280867753984","122919363656286212","188044536365187072"]
-shitlist_file = './shitlist.txt'
+modlist_file = './modlist.txt'
 
 bot = commands.Bot(command_prefix='-')
 announcementchannel = None
@@ -135,12 +135,18 @@ async def lor(ctx):
 async def leaderboard(ctx, region = None):
 	leaderboard_message = ""
 	rank_message = ""
+	valid_regions = ["americas", "europe", "asia"]
+	if region == None:
+		await ctx.send("Usage: `-lor leaderboards [region]`. Supported regions are: Americas, Asia, Europe")
+		return
+	if region.lower() not in valid_regions:
+		await ctx.send("Invalid region. Supported regions are: Americas, Asia, Europe")
+		return
 	embed = discord.Embed(title= "LoR Master Tier in " + region.title() , color=0xa9152b)
-	print(region)
 	async with aiohttp.ClientSession() as session:
 			async with session.get("https://" + region + ".api.riotgames.com/lor/ranked/v1/leaderboards?api_key=" + apikey) as response:
 				if response.status != 200:
-					await ctx.send("Please specify a valid region (Americas, Asia, Europe)")
+					await ctx.send("Riot API returned a bad request. Check for errors, or tell Leo to reset his API key.")
 					return
 				leaderboards = await response.json()
 				for x in range(len(leaderboards["players"])):
@@ -159,11 +165,14 @@ async def esports(ctx):
 	return
 		
 @esports.command(pass_context=True)
-async def standings(ctx, tournament: str):
+async def standings(ctx, tournament = None):
 	embed = discord.Embed(title = tournament.upper() + " Standings", color=0xa9152b)
 	ordinal_message = ""
 	teams_message = ""
 	records_message = ""
+	if tournament == None:
+		await ctx.send("Usage: `-esports standings [league]`. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
+		return
 	tournamentId = await getTournamentId(tournament)
 	if tournamentId == "Invalid League":
 		await ctx.send("League not supported. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
@@ -206,9 +215,13 @@ async def standings(ctx, tournament: str):
 	await ctx.send(embed=embed)
 
 @esports.command(pass_context=True)
-async def schedule(ctx, league: str):
+async def schedule(ctx, league = None):
 	schedule_message = ""
 	teams_message = ""
+	if league == None:
+		await ctx.send("Usage: `-esports schedule [league]`. Supported leagues are: LCS, LEC, LLCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
+		return
+	league = await sanitizeinput(league)
 	embed = discord.Embed(title = league.upper() + " Schedule (Next 7 days)", color=0xa9152b)
 	league = await getLeagueId(league)
 	if league == "Invalid League":
@@ -246,16 +259,20 @@ async def schedule(ctx, league: str):
 		await ctx.send(embed=embed)
 	
 @esports.command(pass_context=True)
-async def team(ctx, team: str):
+async def team(ctx, team = None):
 	role_message = ""
 	name_message = ""
+	if team == None:
+		await ctx.send("Usage: `-esports team [team]. Example: -esports team TSM`. If the team has spaces, replace the spaces with dashes. For example: Counter-Logic-Gaming")
+		return
+	team = await sanitizeinput(team)
 	async with aiohttp.ClientSession() as session:
 		headers = {'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'}
 		async with session.get("https://esports-api.lolesports.com/persisted/gw/getTeams?hl=en-US&id=" + team.lower(),headers=headers) as response:
 			team_response = await response.json()
 			await session.close()
 			if team_response["data"]["teams"] == []:
-				await ctx.send("Invalid team name. Double check spelling, or try something else (If you tried IMT for Immortals, try Immortals instead, or vice versa).")
+				await ctx.send("Invalid team name. If the team has spaces, replace the spaces with dashes. For example: Counter-Logic-Gaming. Otherwise, check spelling, or try an abbreviation, e.g TSM")
 				return
 			embed = discord.Embed(title = team.upper() + " Roster", color=0xa9152b)
 			names = team_response["data"]["teams"][0]["players"]
@@ -269,35 +286,40 @@ async def team(ctx, team: str):
 	await ctx.send(embed=embed)
 
 @bot.group(pass_context=True)
-async def shitlist(ctx):
+async def modlist(ctx):
 	if ctx.invoked_subcommand is None:
-		if str(ctx.author.id) not in moderators:
+		ismod = await moderatorcheck(ctx)
+		if ismod != True:
 			return
-		shitlist = open(shitlist_file, 'r')
-		await ctx.send(shitlist.read())
-		shitlist.close()
+		modlist = open(modlist_file, 'r')
+		await ctx.send(modlist.read())
+		modlist.close()
+	return
 
-@shitlist.command(pass_context=True)
-async def add(ctx, name):
-	if str(ctx.author.id) not in moderators:
+@modlist.command(pass_context=True)
+async def add(ctx, name = None):
+	ismod = await moderatorcheck(ctx)
+	if ismod != True or name == None:
 		return
-	shitlist = open(shitlist_file, 'a')
-	shitlist.write(name+'\n')
-	shitlist.close()
+	modlist = open(modlist_file, 'a')
+	modlist.write(name+'\n')
+	modlist.close()
 	await ctx.send("Addition successful")
 	return
 	
-@shitlist.command(pass_context=True)
-async def remove(ctx, name):
-	if str(ctx.author.id) not in moderators:
+@modlist.command(pass_context=True)
+async def remove(ctx, name = None):
+	ismod = await moderatorcheck(ctx)
+	if ismod != True or name == None:
 		return
-	shitlist = open(shitlist_file, 'r')
-	names = shitlist.readlines()
-	shitlist.close()
-	shitlist = open(shitlist_file, 'w')
+	modlist = open(modlist_file, 'r')
+	names = modlist.readlines()
+	modlist.close()
+	modlist = open(modlist_file, 'w')
 	for line in names:
 		if line.strip("\n") != name:
-			shitlist.write(line)
+			modlist.write(line)
+	modlist.close()
 	return
 
 @bot.command(name='poll')
@@ -305,9 +327,22 @@ async def poll(ctx, *, arguments):
 	reaction_list = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']	
 	answers = ""
 	answers_vote = ""
-	arguments = arguments.split(', ', 9)
-	question = arguments[0].title() 
-	remainingseconds = 1 
+	arguments = arguments.split(',', 10)
+	for x in range(len(arguments)):
+		arguments[x] = arguments[x].strip()
+	question = arguments[0].title()
+	remainingseconds = 0
+	timeremaining = 0
+	try:
+		int(arguments[-1])
+	except ValueError:
+		await ctx.send("The last argument sent needs to be an integer indicating how long the poll should last in seconds (Max:300, rounded to the nearest 5 otherwise)")
+	if int(arguments[-1]) > 300:
+		await ctx.send("Poll timer has been set to the maximum value of 300 seconds")
+		remainingseconds = 300
+	else:
+		remainingseconds = round(int(arguments[-1])/5)*5 #Rounds to a multple of 5
+	del arguments[-1]
 	if question[-1] != '?':
 		question += '?'
 	for x in range(len(arguments)):
@@ -317,14 +352,18 @@ async def poll(ctx, *, arguments):
 			answers += str(x) + ": " + arguments[x].title() + '\n'
 	embed = discord.Embed(title = "Question: " + question, color = 0xa9152b)
 	embed.add_field(name = "Answers", value = answers, inline=True)
-	embed.add_field(name = "Time Remaining", value = str(remainingseconds*5) + " seconds", inline=False)
+	if remainingseconds >= 60:
+		timeremaining = str(int(remainingseconds/60)) + " minutes, " + str(remainingseconds%60) + " seconds"
+	else:
+		timeremaining = str(remainingseconds%60) + " seconds"
+	embed.add_field(name = "Time Remaining", value = timeremaining, inline=False)
 	msg = await ctx.send(embed=embed)
 	for x in range(len(arguments)):
 		if x == len(arguments) - 1:
 			continue
 		else:
 			await discord.Message.add_reaction(msg, reaction_list[x])	
-	while remainingseconds >= 0:
+	while remainingseconds != "done":
 		if remainingseconds <= 0:
 			embed.set_field_at(1, name = "Time Remaining", value = "Poll has finished", inline=False)
 			await discord.Message.edit(msg, embed=embed)
@@ -336,12 +375,15 @@ async def poll(ctx, *, arguments):
 					reactors[react.count].append(react.emoji)
 			max_reacts = max(reactors,key=int)
 			if len(reactors[max_reacts]) != 1:
-				tie_message = 'There was a tie between: "'
-				for x in range(len(reactors[max_reacts])):
-					if x != len(reactors[max_reacts]) - 1:
-						tie_message += arguments[reaction_list.index(reactors[max_reacts][x])+1] + '" and "'
-					else:
-						tie_message += arguments[reaction_list.index(reactors[max_reacts][x])+1] + '"'
+				if max_reacts == 1:
+					tie_message = "There were no votes cast"
+				else:
+					tie_message = 'There was a tie between: "'
+					for x in range(len(reactors[max_reacts])):
+						if x != len(reactors[max_reacts]) - 1:
+							tie_message += arguments[reaction_list.index(reactors[max_reacts][x])+1] + '" and "'
+						else:
+							tie_message += arguments[reaction_list.index(reactors[max_reacts][x])+1] + '"'
 				embed.add_field(name = "Tie!", value = tie_message, inline=False)
 			else:
 				embed.add_field(name = "Winner", value = arguments[reaction_list.index(reactors[max_reacts][0])+1] + " wins!", inline=False)
@@ -353,11 +395,17 @@ async def poll(ctx, *, arguments):
 						answers_vote += str(msg.reactions[x].count-1) + " votes\n"
 			embed.insert_field_at(1, name = "Votes", value = answers_vote, inline=True)
 			await discord.Message.edit(msg, embed=embed)
-			remainingseconds -= 1
+			await discord.Message.clear_reactions(msg)
+			remainingseconds = "done"
 		else:
-			embed.set_field_at(1, name = "Time Remaining", value = str(remainingseconds*5) + " seconds", inline=False)
+			timeremaining = 0
+			if remainingseconds >= 60:
+				timeremaining = str(int(remainingseconds/60)) + " minutes, " + str(remainingseconds%60) + " seconds"
+			else:
+				timeremaining = str(remainingseconds%60) + " seconds"
+			embed.set_field_at(1, name = "Time Remaining", value = timeremaining, inline=False)
 			await discord.Message.edit(msg, embed=embed)
-			remainingseconds -= 1
+			remainingseconds -= 5
 			await asyncio.sleep(5)
 	
 @bot.command(name='sourcecode', help = "Links the source code to how I work!")
@@ -368,8 +416,12 @@ async def sourcecode(ctx):
 async def sub(ctx):
 	return
 	
-@bot.command(name='servertime')
+@bot.command(name='restartservertime')
 async def restartservertime(ctx):
+	ismod = await moderatorcheck(ctx)
+	if ismod != True:
+		return
+	await ctx.send("Restarting the clock...")
 	await theserverTime()
 	
 async def getTournamentId(tournament):
@@ -442,5 +494,13 @@ async def amazingLive():
 			print("Amazing has gone online")
 			continue;
 		await asyncio.sleep(60)
-		
+
+async def sanitizeinput(inputs):
+	return re.sub(r'[^a-zA-Z-]', "", inputs)
+	
+async def moderatorcheck(ctx):
+	moderatorRole = discord.utils.get(ctx.message.guild.roles, name = "Moderators")
+	if moderatorRole in ctx.author.roles:
+		return True
+	
 bot.run(TOKEN)
