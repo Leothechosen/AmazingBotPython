@@ -95,17 +95,78 @@ class eSports(commands.Cog):
 						starttime = re.sub('[Z]', "", starttime)
 						starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S")
 						if currenttime + timedelta(days=7) > starttime:
-							remainingtime = str(starttime - currenttime)
+							remainingtime = str(starttime-currenttime)
+							days, hours, minutes = await days_hours_minutes(starttime - currenttime)
+							print(days, hours, minutes)
 							print(remainingtime)
-							if "day" in remainingtime: 
-								remainingtime = remainingtime[:-6] + ' hours\n'
-							else:
-								if remainingtime[0:1] == '1:':
-									remainingtime = remainingtime[0] + " hour, " + remainingtime[3:4] + " minutes\n"
-								elif remainingtime[1] == ":":
-									remainingtime = remainingtime[0] + " hours, " + remainingtime[2:4] + " minutes\n"
+							if days == "0":
+								if hours == "0":
+									if minutes == "0":
+										remainingtime = ("Starting soon!\n")
+									elif minutes == "1":
+										remainingtime = (minutes + " minute\n")
+									else:
+										remainingtime = (minutes + " minutes\n")
+								if hours == "1":
+									if minutes == "0":
+										remainingtime = (hours + " hour\n")
+									elif minutes == "1":
+										remainingtime = (hours + " hour, " + minutes + " minute\n")
+									else:
+										remainingtime = (hours + " hour, " + minutes + " minutes\n")
 								else:
-									remainingtime = remainingtime[0:2] + " hours, " + remainingtime[2:4] + " minutes\n"
+									if minutes == "0":
+										remainingtime = (hours + " hours\n")
+									elif minutes == "1":
+										remainingtime = (hours + " hours, " + minutes + " minute\n")
+									else:
+										remainingtime = (hours + " hours, " + minutes + " minutes\n")
+							elif days == "1":
+								if hours == "0":
+									if minutes == "0":
+										remainingtime = (days + " day\n")
+									elif minutes == "1":
+										remainingtime = (days + " day, " + minutes + " minute\n")
+									else:
+										remainingtime = (days + " day, " + minutes + " minutes\n")
+								if hours == "1":
+									if minutes == "0":
+										remainingtime = (days + " day, " + hours + " hour\n")
+									elif minutes == "1":
+										remainingtime = (days + " day, " + hours + " hour, " + minutes + " minute\n")
+									else:
+										remainingtime = (days + " day, " + hours + " hour, " + minutes + " minutes\n")
+								else:
+									if minutes == "0":
+										remainingtime = (days + " day, " + hours + " hours\n")
+									elif minutes == "1":
+										remainingtime = (days + " day, " + hours + " hours, " + minutes + " minute\n")
+									else:
+										remainingtime = (days + " day, " + hours + " hours, " + minutes + " minutes\n")
+							else:
+								if hours == "0":
+									if minutes == "0":
+										remainingtime = (days + " days\n")
+									elif minutes == "1":
+										remainingtime = (days + " days, " + minutes + " minute\n")
+									else:
+										remainingtime = (days + " days, " + minutes + " minutes\n")
+								if hours == "1":
+									if minutes == "0":
+										remainingtime = (days + " days, " + hours + " hour\n")
+									elif minutes == "1":
+										remainingtime = (days + " days, " + hours + " hour, " + minutes + " minute\n")
+									else:
+										remainingtime = (days + " days, " + hours + " hour, " + minutes + " minutes\n")
+								else:
+									if minutes == "0":
+										remainingtime = (days + " days, " + hours + " hours\n")
+									elif minutes == "1":
+										remainingtime = (days + " days, " + hours + " hours, " + minutes + " minute\n")
+									else:
+										remainingtime = (days + " days, " + hours + " hours, " + minutes + " minutes\n")
+							
+
 							schedule_message += remainingtime
 							teams_message += "**" + scheduled_matches[x]["match"]["teams"][0]["name"] + "**" + " vs " + "**" + scheduled_matches[x]["match"]["teams"][1]["name"] + '**\n'
 				embed.add_field(name = "Time Remaining", value = schedule_message, inline = True)
@@ -178,5 +239,7 @@ async def getLeagueId(self, league):
 	
 async def sanitizeinput(self, inputs):
 	return re.sub(r'[^a-zA-Z0-9-]', "", inputs)
+async def days_hours_minutes(td):
+	return str(td.days), str(td.seconds//3600), str((td.seconds//60)%60)
 def setup(bot):
 	bot.add_cog(eSports(bot))
