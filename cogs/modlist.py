@@ -32,7 +32,7 @@ class Modlist(commands.Cog):
 		modlist.close()
 		modlist = open(modlist_file, 'w')
 		for line in names:
-			if line.strip("\n") != name:
+			if line.strip() != name:
 				modlist.write(line)
 		modlist.close()
 		return
