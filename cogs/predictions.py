@@ -13,6 +13,7 @@ try:
 	f = open('Predictions.db')
 except IOError:
 	print("File not accessible")
+	createdb()
 finally:
 	f.close()
 
@@ -21,6 +22,10 @@ class Predictions(commands.Cog):
 		self.bot = bot
 	
 def createdb():
+	conn = sqlite3.connect('Predictions.db')
+	c = conn.cursor()
+	
+	c.executescript("""
 	CREATE TABLE User (
 		id integer PRIMARY KEY AUTOINCREMENT,
 		discord_id integer,
@@ -54,6 +59,6 @@ def createdb():
 		id_match integer,
 		id_team_predicted integer
 	);
-
+	""")
 def setup(bot):
 	bot.add_cog(Predictions(bot))
