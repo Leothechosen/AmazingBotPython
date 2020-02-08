@@ -24,7 +24,6 @@ class eSports(commands.Cog):
 		if tournament == None:
 			await ctx.send("Usage: `-esports standings [league]`. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
 			return
-		embed = discord.Embed(title = tournament.upper() + " Standings", color=0xa9152b)
 		ordinal_message = ""
 		teams_message = ""
 		records_message = ""
@@ -41,10 +40,11 @@ class eSports(commands.Cog):
 				for x in range(len(rankings)):
 					ordinal = str(rankings[x]['ordinal'])
 					ordinal = await integerPrefix(self, ordinal)
+					ordinal_message += (ordinal + '\n')
 					for y in range(len(rankings[x]["teams"])):
-						ordinal_message += (ordinal + '\n')
 						teams_message += str(rankings[x]["teams"][y]["name"]) + '\n'
 						records_message += str(rankings[x]["teams"][y]["record"]["wins"]) + "-" + str(rankings[x]["teams"][y]["record"]["losses"]) + '\n'
+				embed = discord.Embed(title = tournament.upper() + " Standings", color=0xa9152b)
 				embed.add_field(name="Place", value=ordinal_message, inline=True)
 				embed.add_field(name="Team", value=teams_message, inline=True)
 				embed.add_field(name="Record", value=records_message, inline=True)
