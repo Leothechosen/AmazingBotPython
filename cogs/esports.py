@@ -43,9 +43,7 @@ class eSports(commands.Cog):
 					ordinal = await integerPrefix(self, ordinal)
 					for y in range(len(rankings[x]["teams"])):
 						ordinal_message += (ordinal + '\n')
-					for y in range(len(rankings[x]["teams"])):
 						teams_message += str(rankings[x]["teams"][y]["name"]) + '\n'
-					for y in range(len(rankings[x]["teams"])):
 						records_message += str(rankings[x]["teams"][y]["record"]["wins"]) + "-" + str(rankings[x]["teams"][y]["record"]["losses"]) + '\n'
 				embed.add_field(name="Place", value=ordinal_message, inline=True)
 				embed.add_field(name="Team", value=teams_message, inline=True)
