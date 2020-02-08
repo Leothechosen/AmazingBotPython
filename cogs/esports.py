@@ -36,36 +36,20 @@ class eSports(commands.Cog):
 			headers = {'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'}
 			async with session.get("https://esports-api.lolesports.com/persisted/gw/getStandings?hl=en-US&tournamentId=" + tournamentId, headers=headers) as response:
 				standings_response = await response.json()
+				await session.close()
 				rankings = (standings_response["data"]["standings"][0]["stages"][0]["sections"][0]["rankings"])
 				for x in range(len(rankings)):
 					ordinal = str(rankings[x]['ordinal'])
-					def integerPrefix(ordinal):
-						switcher = {
-							"1":"1st",
-							"2":"2nd",
-							"3":"3rd",
-							"4":"4th",
-							"5":"5th",
-							"6":"6th",
-							"7":"7th",
-							"8":"8th",
-							"9":"9th",
-							"10":"10th"
-							}
-						return switcher.get(ordinal, "???")
-					ordinal = integerPrefix(ordinal)
+					ordinal = await integerPrefix(self, ordinal)
 					for y in range(len(rankings[x]["teams"])):
 						ordinal_message += (ordinal + '\n')
-				embed.add_field(name="Place", value=ordinal_message, inline=True)
-				for x in range(len(rankings)):
 					for y in range(len(rankings[x]["teams"])):
 						teams_message += str(rankings[x]["teams"][y]["name"]) + '\n'
-				embed.add_field(name="Team", value=teams_message, inline=True)
-				for x in range(len(rankings)):
 					for y in range(len(rankings[x]["teams"])):
 						records_message += str(rankings[x]["teams"][y]["record"]["wins"]) + "-" + str(rankings[x]["teams"][y]["record"]["losses"]) + '\n'
+				embed.add_field(name="Place", value=ordinal_message, inline=True)
+				embed.add_field(name="Team", value=teams_message, inline=True)
 				embed.add_field(name="Record", value=records_message, inline=True)
-			await session.close()
 		await ctx.send(embed=embed)
 
 	@esports.command(pass_context=True)
@@ -75,22 +59,19 @@ class eSports(commands.Cog):
 		teams2_message = ""
 		opponent_message = ""
 		thumbnail = ""
+		team_record = ""
 		next_4_matches = 0
 		if league == None:
 			await ctx.send("Usage: `-esports schedule [league] (Optional: [team abbreviation])`. Supported leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
 			return
-		league = await sanitizeinput(self, league)
-		if team == None:
-			embed = discord.Embed(title = league.upper() + " Schedule (Next 7 days)", color=0xa9152b)
-		else:
-			embed = discord.Embed(title = team.upper() + "'s Schedule (Next 4 Matches)", color=0xa9152b)
-		league = await getLeagueId(self, league)
-		if league == "Invalid League":
+		leaguename = await sanitizeinput(self, league)
+		leagueid = await getLeagueId(self, league)
+		if leagueid == "Invalid League":
 			await ctx.send("League not supported. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
 			return
 		async with aiohttp.ClientSession() as session:
 			headers = {'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'}
-			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + league, headers=headers) as response:
+			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagueid, headers=headers) as response:
 				schedule_response = await response.json()
 				await session.close()
 				currenttime = datetime.now(timezone('UTC')).strftime("%Y-%m-%d %H:%M:%S")
@@ -118,22 +99,29 @@ class eSports(commands.Cog):
 									remainingtime = await timeformatting(days, hours, minutes)
 									schedule_message += remainingtime
 									if scheduled_matches[x]["match"]["teams"][0]["code"] == team:
-										opponent_message += scheduled_matches[x]["match"]["teams"][1]["name"] + '\n'
+										team_record = "(" + str(scheduled_matches[x]["match"]["teams"][0]["record"]["wins"]) + "-" + str(scheduled_matches[x]["match"]["teams"][0]["record"]["losses"]) + ")"
+										opponent_message += '**' + scheduled_matches[x]["match"]["teams"][1]["name"] + " (" + str(scheduled_matches[x]["match"]["teams"][1]["record"]["wins"]) + "-" + str(scheduled_matches[x]["match"]["teams"][1]["record"]["losses"]) + ")**\n"
 										thumbnail = scheduled_matches[x]["match"]["teams"][0]["image"]
 									else:
-										opponent_message += scheduled_matches[x]["match"]["teams"][0]["name"] + '\n'
+										team_record = "(" + str(scheduled_matches[x]["match"]["teams"][1]["record"]["wins"]) + "-" + str(scheduled_matches[x]["match"]["teams"][1]["record"]["losses"]) + ")"
+										opponent_message += '**' + scheduled_matches[x]["match"]["teams"][0]["name"] + " (" + str(scheduled_matches[x]["match"]["teams"][0]["record"]["wins"]) + "-" + str(scheduled_matches[x]["match"]["teams"][0]["record"]["losses"]) + ")**\n"
 										thumbnail = scheduled_matches[x]["match"]["teams"][1]["image"]	
 									next_4_matches += 1
 				if schedule_message == "":
 					await ctx.send("Team could not be found.")
 					return
-				embed.add_field(name = "Time Remaining", value = schedule_message, inline = True)
 				if team == None:
+					embed = discord.Embed(title = leaguename.upper() + " Schedule", color = 0xa9152b)
+					embed.add_field(name = "Time Remaining", value = schedule_message, inline = True)
 					embed.add_field(name = "Team 1", value = teams1_message, inline = True)
 					embed.add_field(name = "Team 2", value = teams2_message, inline = True)
+					embed.set_footer(text = "Next 7 Days")
 				else:
+					embed = discord.Embed(title = team.upper() + " " + team_record, color = 0xa9152b)
+					embed.add_field(name = "Time Remaining", value = schedule_message, inline = True)
 					embed.add_field(name = "Opponent", value = opponent_message, inline = True)
-				embed.set_thumbnail(url=thumbnail)
+					embed.set_footer(text = "Next 4 Matches")
+					embed.set_thumbnail(url=thumbnail)
 			await ctx.send(embed=embed)
 		
 	@esports.command(pass_context=True)
@@ -162,6 +150,21 @@ class eSports(commands.Cog):
 				embed.add_field(name="Name", value=name_message, inline=True)
 				embed.set_thumbnail(url=team_response["data"]["teams"][0]["image"])
 		await ctx.send(embed=embed)
+		
+async def integerPrefix(self, ordinal):
+						switcher = {
+							"1":"1st",
+							"2":"2nd",
+							"3":"3rd",
+							"4":"4th",
+							"5":"5th",
+							"6":"6th",
+							"7":"7th",
+							"8":"8th",
+							"9":"9th",
+							"10":"10th"
+							}
+						return switcher.get(ordinal, "???")
 	
 async def getTournamentId(self, tournament):
 	tournament = tournament.upper()
@@ -271,7 +274,9 @@ async def timeformatting(days, hours, minutes):
 	
 async def sanitizeinput(self, inputs):
 	return re.sub(r'[^a-zA-Z0-9-]', "", inputs)
+	
 async def days_hours_minutes(td):
 	return str(td.days), str(td.seconds//3600), str((td.seconds//60)%60)
+	
 def setup(bot):
 	bot.add_cog(eSports(bot))
