@@ -79,7 +79,7 @@ def createdb():
 				rankings = (standings_response["data"]["standings"][0]["stages"][0]["sections"][0]["rankings"])
 				for y in range(len(rankings)):
 					for z in range(len(rankings[x]["teams"])):
-						c.execute("INSERT INTO Team(code, name) VALUES(rankings[x]['teams'][y]['code'], rankings[x]['teams'][y]['name']")
+						c.execute("INSERT INTO Team(code, name) VALUES(rankings[y]['teams'][z]['code'], rankings[y]['teams'][z]['name']")
 		
 def getTournamentId(self, tournament):
 	tournament = tournament.upper()
