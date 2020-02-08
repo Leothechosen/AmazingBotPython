@@ -59,8 +59,6 @@ def createdb():
 		id_match integer,
 		id_team_predicted integer
 	);
-	""")
-	c.executescript("""
 	INSERT INTO League(code, name) VALUES ("lcs", "LCS");
 	INSERT INTO League(code, name) VALUES ("lec", "LEC");
 	INSERT INTO League(code, name) VALUES ("lck", "LCK");
@@ -71,5 +69,31 @@ def createdb():
 	INSERT INTO League(code, name) VALUES ("ljl-japan", "LJL");
 	INSERT INTO League(code, name) VALUES ("lcs-academy", "LCSA");
 	""")
+	
+	async with aiohttp.ClientSession() as session:
+		tournaments = ["103462439438682788","103462459318635408","103540363364808496","103462420723438502","103535401218775284", "103478354329449186", "103495775740097550", "103540397353089204", "103462454280724883"
+		headers = {'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'}
+		for x in range(len(tournaments)):
+			async with session.get("https://esports-api.lolesports.com/persisted/gw/getStandings?hl=en-US&tournamentId=" + tournaments[x], headers=headers) as response:
+				standings_response = await response.json()
+				rankings = (standings_response["data"]["standings"][0]["stages"][0]["sections"][0]["rankings"])
+				for y in range(len(rankings)):
+					for z in range(len(rankings[x]["teams"])):
+						c.execute("INSERT INTO Team(code, name) VALUES(rankings[x]['teams'][y]['code'], rankings[x]['teams'][y]['name']")
+		
+def getTournamentId(self, tournament):
+	tournament = tournament.upper()
+	switcher = {
+		"LCS":"103462439438682788",
+		"LEC":"103462459318635408",
+		"LCK":"103540363364808496",
+		"LPL":"103462420723438502",
+		"OPL":"103535401218775284",	
+		"CBLOL":"103478354329449186",
+		"TCL":"103495775740097550",
+		"LJL":"103540397353089204",
+		"LCSA":"103462454280724883"
+			}
+		
 def setup(bot): 
 	bot.add_cog(Predictions(bot))
