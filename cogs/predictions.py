@@ -39,13 +39,13 @@ def createdb():
 	);
 
 	CREATE TABLE League (
-		id blob PRIMARY KEY AUTOINCREMENT,
+		id integer PRIMARY KEY AUTOINCREMENT,
 		code text,
 		name text
 	);
 
 	CREATE TABLE Match (
-		id blob,
+		id integer,
 		id_team_1 integer,
 		id_team_2 integer,
 		id_league integer,
@@ -60,5 +60,16 @@ def createdb():
 		id_team_predicted integer
 	);
 	""")
-def setup(bot):
+	c.executescript("""
+	INSERT INTO League(code, name) VALUES ("lcs", "LCS");
+	INSERT INTO League(code, name) VALUES ("lec", "LEC");
+	INSERT INTO League(code, name) VALUES ("lck", "LCK");
+	INSERT INTO League(code, name) VALUES ("lpl", "LPL");
+	INSERT INTO League(code, name) VALUES ("oce-opl", "OPL");
+	INSERT INTO League(code, name) VALUES ("cblol-brazil", "CBLOL");
+	INSERT INTO League(code, name) VALUES ("turkiye-sampiyonluk-ligi", "TCL");
+	INSERT INTO League(code, name) VALUES ("ljl-japan", "LJL");
+	INSERT INTO League(code, name) VALUES ("lcs-academy", "LCSA");
+	""")
+def setup(bot): 
 	bot.add_cog(Predictions(bot))
