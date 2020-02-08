@@ -71,7 +71,8 @@ class eSports(commands.Cog):
 	@esports.command(pass_context=True)
 	async def schedule(self, ctx, league = None, team = None):
 		schedule_message = ""
-		teams_message = ""
+		teams1_message = ""
+		teams2_message = ""
 		opponent_message = ""
 		thumbnail = ""
 		next_4_matches = 0
@@ -105,7 +106,8 @@ class eSports(commands.Cog):
 								days, hours, minutes = await days_hours_minutes(starttime - currenttime)
 								remainingtime = await timeformatting(days, hours, minutes)
 								schedule_message += remainingtime
-								teams_message += "**" + scheduled_matches[x]["match"]["teams"][0]["name"] + "**" + " vs " + "**" + scheduled_matches[x]["match"]["teams"][1]["name"] + '**\n'
+								teams1_message += "**" + scheduled_matches[x]["match"]["teams"][0]["name"] + " (" + str(scheduled_matches[x]["match"]["teams"][0]["record"]["wins"]) + "-" + str(scheduled_matches[x]["match"]["teams"][0]["record"]["losses"]) + ")" + "**\n"
+								teams2_message += "**" + scheduled_matches[x]["match"]["teams"][1]["name"] + " (" + str(scheduled_matches[x]["match"]["teams"][1]["record"]["wins"]) + "-" + str(scheduled_matches[x]["match"]["teams"][1]["record"]["losses"]) + ")" + "**\n"
 						else:
 							if next_4_matches != 4:
 								if scheduled_matches[x]["match"]["teams"][0]["code"] == team or scheduled_matches[x]["match"]["teams"][1]["code"] == team:
@@ -120,14 +122,15 @@ class eSports(commands.Cog):
 										thumbnail = scheduled_matches[x]["match"]["teams"][0]["image"]
 									else:
 										opponent_message += scheduled_matches[x]["match"]["teams"][0]["name"] + '\n'
-										thumbnail = scheduled_matches[x]["match"]["teams"][0]["image"]	
+										thumbnail = scheduled_matches[x]["match"]["teams"][1]["image"]	
 									next_4_matches += 1
 				if schedule_message == "":
 					await ctx.send("Team could not be found.")
 					return
 				embed.add_field(name = "Time Remaining", value = schedule_message, inline = True)
 				if team == None:
-					embed.add_field(name = "Teams", value = teams_message, inline = True)
+					embed.add_field(name = "Team 1", value = teams1_message, inline = True)
+					embed.add_field(name = "Team 2", value = teams2_message, inline = True)
 				else:
 					embed.add_field(name = "Opponent", value = opponent_message, inline = True)
 				embed.set_thumbnail(url=thumbnail)
@@ -232,16 +235,16 @@ async def timeformatting(days, hours, minutes):
 			if minutes == "0":
 				remainingtime = (days + " day, " + hours + " hour\n")
 			elif minutes == "1":
-				remainingtime = (days + " day, " + hours + " hour, " + minutes + " minute\n")
+				remainingtime = (days + " day, " + hours + " hour\n")
 			else:
-				remainingtime = (days + " day, " + hours + " hour, " + minutes + " minutes\n")
+				remainingtime = (days + " day, " + hours + " hour\n")
 		else:
 			if minutes == "0":
 				remainingtime = (days + " day, " + hours + " hours\n")
 			elif minutes == "1":
-				remainingtime = (days + " day, " + hours + " hours, " + minutes + " minute\n")
+				remainingtime = (days + " day, " + hours + " hours\n")
 			else:
-				remainingtime = (days + " day, " + hours + " hours, " + minutes + " minutes\n")
+				remainingtime = (days + " day, " + hours + " hours\n")
 	else:
 		if hours == "0":
 			if minutes == "0":
@@ -254,16 +257,16 @@ async def timeformatting(days, hours, minutes):
 			if minutes == "0":
 				remainingtime = (days + " days, " + hours + " hour\n")
 			elif minutes == "1":
-				remainingtime = (days + " days, " + hours + " hour, " + minutes + " minute\n")
+				remainingtime = (days + " days, " + hours + " hour\n")
 			else:
-				remainingtime = (days + " days, " + hours + " hour, " + minutes + " minutes\n")
+				remainingtime = (days + " days, " + hours + " hour\n")
 		else:
 			if minutes == "0":
 				remainingtime = (days + " days, " + hours + " hours\n")
 			elif minutes == "1":
-				remainingtime = (days + " days, " + hours + " hours, " + minutes + " minute\n")
+				remainingtime = (days + " days, " + hours + " hours\n")
 			else:
-				remainingtime = (days + " days, " + hours + " hours, " + minutes + " minutes\n")
+				remainingtime = (days + " days, " + hours + " hours\n")
 	return remainingtime
 	
 async def sanitizeinput(self, inputs):
