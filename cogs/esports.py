@@ -69,14 +69,20 @@ class eSports(commands.Cog):
 		await ctx.send(embed=embed)
 
 	@esports.command(pass_context=True)
-	async def schedule(self, ctx, league = None):
+	async def schedule(self, ctx, league = None, team = None):
 		schedule_message = ""
 		teams_message = ""
+		opponent_message = ""
+		thumbnail = ""
+		next_4_matches = 0
 		if league == None:
-			await ctx.send("Usage: `-esports schedule [league]`. Supported leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
+			await ctx.send("Usage: `-esports schedule [league] (Optional: [team abbreviation])`. Supported leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
 			return
 		league = await sanitizeinput(self, league)
-		embed = discord.Embed(title = league.upper() + " Schedule (Next 7 days)", color=0xa9152b)
+		if team == None:
+			embed = discord.Embed(title = league.upper() + " Schedule (Next 7 days)", color=0xa9152b)
+		else:
+			embed = discord.Embed(title = team.upper() + "'s Schedule (Next 4 Matches)", color=0xa9152b)
 		league = await getLeagueId(self, league)
 		if league == "Invalid League":
 			await ctx.send("League not supported. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
@@ -91,86 +97,40 @@ class eSports(commands.Cog):
 				scheduled_matches = schedule_response["data"]["schedule"]["events"]
 				for x in range(len(scheduled_matches)):
 					if scheduled_matches[x]["state"] == "unstarted":
-						starttime = re.sub('[T]', " ", scheduled_matches[x]["startTime"])
-						starttime = re.sub('[Z]', "", starttime)
-						starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S")
-						if currenttime + timedelta(days=7) > starttime:
-							remainingtime = str(starttime-currenttime)
-							days, hours, minutes = await days_hours_minutes(starttime - currenttime)
-							print(days, hours, minutes)
-							print(remainingtime)
-							if days == "0":
-								if hours == "0":
-									if minutes == "0":
-										remainingtime = ("Starting soon!\n")
-									elif minutes == "1":
-										remainingtime = (minutes + " minute\n")
+						if team == None:
+							starttime = re.sub('[T]', " ", scheduled_matches[x]["startTime"])
+							starttime = re.sub('[Z]', "", starttime)
+							starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S")
+							if currenttime + timedelta(days=7) > starttime:
+								days, hours, minutes = await days_hours_minutes(starttime - currenttime)
+								remainingtime = await timeformatting(days, hours, minutes)
+								schedule_message += remainingtime
+								teams_message += "**" + scheduled_matches[x]["match"]["teams"][0]["name"] + "**" + " vs " + "**" + scheduled_matches[x]["match"]["teams"][1]["name"] + '**\n'
+						else:
+							if next_4_matches != 4:
+								if scheduled_matches[x]["match"]["teams"][0]["code"] == team or scheduled_matches[x]["match"]["teams"][1]["code"] == team:
+									starttime = re.sub('[T]', " ", scheduled_matches[x]["startTime"])
+									starttime = re.sub('[Z]', "", starttime)
+									starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S")
+									days, hours, minutes = await days_hours_minutes(starttime - currenttime)
+									remainingtime = await timeformatting(days, hours, minutes)
+									schedule_message += remainingtime
+									if scheduled_matches[x]["match"]["teams"][0]["code"] == team:
+										opponent_message += scheduled_matches[x]["match"]["teams"][1]["name"] + '\n'
+										thumbnail = scheduled_matches[x]["match"]["teams"][0]["image"]
 									else:
-										remainingtime = (minutes + " minutes\n")
-								if hours == "1":
-									if minutes == "0":
-										remainingtime = (hours + " hour\n")
-									elif minutes == "1":
-										remainingtime = (hours + " hour, " + minutes + " minute\n")
-									else:
-										remainingtime = (hours + " hour, " + minutes + " minutes\n")
-								else:
-									if minutes == "0":
-										remainingtime = (hours + " hours\n")
-									elif minutes == "1":
-										remainingtime = (hours + " hours, " + minutes + " minute\n")
-									else:
-										remainingtime = (hours + " hours, " + minutes + " minutes\n")
-							elif days == "1":
-								if hours == "0":
-									if minutes == "0":
-										remainingtime = (days + " day\n")
-									elif minutes == "1":
-										remainingtime = (days + " day, " + minutes + " minute\n")
-									else:
-										remainingtime = (days + " day, " + minutes + " minutes\n")
-								if hours == "1":
-									if minutes == "0":
-										remainingtime = (days + " day, " + hours + " hour\n")
-									elif minutes == "1":
-										remainingtime = (days + " day, " + hours + " hour, " + minutes + " minute\n")
-									else:
-										remainingtime = (days + " day, " + hours + " hour, " + minutes + " minutes\n")
-								else:
-									if minutes == "0":
-										remainingtime = (days + " day, " + hours + " hours\n")
-									elif minutes == "1":
-										remainingtime = (days + " day, " + hours + " hours, " + minutes + " minute\n")
-									else:
-										remainingtime = (days + " day, " + hours + " hours, " + minutes + " minutes\n")
-							else:
-								if hours == "0":
-									if minutes == "0":
-										remainingtime = (days + " days\n")
-									elif minutes == "1":
-										remainingtime = (days + " days, " + minutes + " minute\n")
-									else:
-										remainingtime = (days + " days, " + minutes + " minutes\n")
-								if hours == "1":
-									if minutes == "0":
-										remainingtime = (days + " days, " + hours + " hour\n")
-									elif minutes == "1":
-										remainingtime = (days + " days, " + hours + " hour, " + minutes + " minute\n")
-									else:
-										remainingtime = (days + " days, " + hours + " hour, " + minutes + " minutes\n")
-								else:
-									if minutes == "0":
-										remainingtime = (days + " days, " + hours + " hours\n")
-									elif minutes == "1":
-										remainingtime = (days + " days, " + hours + " hours, " + minutes + " minute\n")
-									else:
-										remainingtime = (days + " days, " + hours + " hours, " + minutes + " minutes\n")
-							
-
-							schedule_message += remainingtime
-							teams_message += "**" + scheduled_matches[x]["match"]["teams"][0]["name"] + "**" + " vs " + "**" + scheduled_matches[x]["match"]["teams"][1]["name"] + '**\n'
+										opponent_message += scheduled_matches[x]["match"]["teams"][0]["name"] + '\n'
+										thumbnail = scheduled_matches[x]["match"]["teams"][0]["image"]	
+									next_4_matches += 1
+				if schedule_message == "":
+					await ctx.send("Team could not be found.")
+					return
 				embed.add_field(name = "Time Remaining", value = schedule_message, inline = True)
-				embed.add_field(name = "Teams", value = teams_message, inline = True)
+				if team == None:
+					embed.add_field(name = "Teams", value = teams_message, inline = True)
+				else:
+					embed.add_field(name = "Opponent", value = opponent_message, inline = True)
+				embed.set_thumbnail(url=thumbnail)
 			await ctx.send(embed=embed)
 		
 	@esports.command(pass_context=True)
@@ -236,6 +196,75 @@ async def getLeagueId(self, league):
 		"LJL":"98767991349978712"
 			}
 	return switcher.get(league, "Invalid League")
+	
+async def timeformatting(days, hours, minutes):
+	if days == "0":
+		if hours == "0":
+			if minutes == "0":
+				remainingtime = ("Starting soon!\n")
+			elif minutes == "1":
+				remainingtime = (minutes + " minute\n")
+			else:
+				remainingtime = (minutes + " minutes\n")
+		if hours == "1":
+			if minutes == "0":
+				remainingtime = (hours + " hour\n")
+			elif minutes == "1":
+				remainingtime = (hours + " hour, " + minutes + " minute\n")
+			else:
+				remainingtime = (hours + " hour, " + minutes + " minutes\n")
+		else:
+			if minutes == "0":
+				remainingtime = (hours + " hours\n")
+			elif minutes == "1":
+				remainingtime = (hours + " hours, " + minutes + " minute\n")
+			else:
+				remainingtime = (hours + " hours, " + minutes + " minutes\n")
+	elif days == "1":
+		if hours == "0":
+			if minutes == "0":
+				remainingtime = (days + " day\n")
+			elif minutes == "1":
+				remainingtime = (days + " day, " + minutes + " minute\n")
+			else:
+				remainingtime = (days + " day, " + minutes + " minutes\n")
+		if hours == "1":
+			if minutes == "0":
+				remainingtime = (days + " day, " + hours + " hour\n")
+			elif minutes == "1":
+				remainingtime = (days + " day, " + hours + " hour, " + minutes + " minute\n")
+			else:
+				remainingtime = (days + " day, " + hours + " hour, " + minutes + " minutes\n")
+		else:
+			if minutes == "0":
+				remainingtime = (days + " day, " + hours + " hours\n")
+			elif minutes == "1":
+				remainingtime = (days + " day, " + hours + " hours, " + minutes + " minute\n")
+			else:
+				remainingtime = (days + " day, " + hours + " hours, " + minutes + " minutes\n")
+	else:
+		if hours == "0":
+			if minutes == "0":
+				remainingtime = (days + " days\n")
+			elif minutes == "1":
+				remainingtime = (days + " days, " + minutes + " minute\n")
+			else:
+				remainingtime = (days + " days, " + minutes + " minutes\n")
+		if hours == "1":
+			if minutes == "0":
+				remainingtime = (days + " days, " + hours + " hour\n")
+			elif minutes == "1":
+				remainingtime = (days + " days, " + hours + " hour, " + minutes + " minute\n")
+			else:
+				remainingtime = (days + " days, " + hours + " hour, " + minutes + " minutes\n")
+		else:
+			if minutes == "0":
+				remainingtime = (days + " days, " + hours + " hours\n")
+			elif minutes == "1":
+				remainingtime = (days + " days, " + hours + " hours, " + minutes + " minute\n")
+			else:
+				remainingtime = (days + " days, " + hours + " hours, " + minutes + " minutes\n")
+	return remainingtime
 	
 async def sanitizeinput(self, inputs):
 	return re.sub(r'[^a-zA-Z0-9-]', "", inputs)
