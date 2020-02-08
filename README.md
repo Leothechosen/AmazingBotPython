@@ -18,6 +18,8 @@ Planned future commands:
 - Expanding the rank command to include top champions played, recent games, and progress in ranking by storing the last rank that was called. For example, if I were to call my own rank (MZLeothechosen: Plat IV 0LP) and then later when I get to Plat III and call rank again, show Plat III (+1) 34LP (+34), but in a cleaner way. Legends of Runeterra's rank will also be added to this command, as soon as it becomes feasible to do so. 
 - If the Discord server becomes large enough and there's interest in it, generate a XvsX Tournament with community members.
 
+Thanks to Curlybear for being a big help.
+
 AmazingBot isn’t endorsed by Riot Games and doesn’t reflect the views or opinions of Riot Games
 or anyone officially involved in producing or managing League of Legends. League of Legends and Riot Games are
 trademarks or registered trademarks of Riot Games, Inc. League of Legends © Riot Games, Inc.
