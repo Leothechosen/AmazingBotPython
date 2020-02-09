@@ -2,6 +2,7 @@ import discord
 import aiohttp
 import asyncio
 import os
+import utils
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -28,7 +29,7 @@ class League(commands.Cog):
 			return
 		embed = discord.Embed(title = name + "'s Ranks in " + region, color=0xa9152b)	
 		region = region.upper()
-		region = region_to_valid_region(region)
+		region = await utils.region_to_valid_region(region)
 		if region == "Invalid Region":
 			await ctx.send("The server you entered is invalid, or it's a Garena server")
 		else:
@@ -94,7 +95,7 @@ class League(commands.Cog):
 			return
 		region = region.upper()
 		embed = discord.Embed(title = name + "'s Profile on " + region, color=0xa9152b)
-		region = region_to_valid_region(region)
+		region = await utils.region_to_valid_region(region)
 		async with aiohttp.ClientSession() as session:
 			async with session.get("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + leagueapikey) as response:
 				if response.status != 200:
@@ -110,33 +111,13 @@ class League(commands.Cog):
 					await ctx.send("Riot API returned a" + str(response.status))
 				masteries = await response.json()
 				for x in range(3):
-					champions = championid_to_champion(str(masteries[x]["championId"]))
+					champions = await utils.championid_to_champion(str(masteries[x]["championId"]))
 					masterypoints = str(masteries[x]["championPoints"])
 					mastery_message += champions + " | " + masterypoints + "\n"
-					await session.close()
+			await session.close()
 		embed.add_field(name = "Top 3 Masteries", value = mastery_message, inline = False)
 		await ctx.send(embed=embed)
 		return
-				
-def championid_to_champion(championid: str):
-	switcher = {"266":"Aatrox","103":"Ahri","84":"Akali","12":"Alistar","32":"Amumu","34":"Anivia","1":"Annie","523":"Aphelios","22":"Ashe","136":"AurelionSol","268":"Azir","432":"Bard","53":"Blitzcrank","63":"Brand","201":"Braum","51":"Caitlyn","164":"Camille","69":"Cassiopeia","31":"Chogath","42":"Corki","122":"Darius","131":"Diana","119":"Draven","36":"DrMundo","245":"Ekko","60":"Elise","28":"Evelynn","81":"Ezreal","9":"Fiddlesticks","114":"Fiora","105":"Fizz","3":"Galio","41":"Gangplank","86":"Garen","150":"Gnar","79":"Gragas","104":"Graves","120":"Hecarim","74":"Heimerdinger","420":"Illaoi","39":"Irelia","427":"Ivern","40":"Janna","59":"JarvanIV","24":"Jax","126":"Jayce","202":"Jhin","222":"Jinx","145":"Kaisa","429":"Kalista","43":"Karma","30":"Karthus","38":"Kassadin","55":"Katarina","10":"Kayle","141":"Kayn","85":"Kennen","121":"Khazix","203":"Kindred","240":"Kled","96":"KogMaw","7":"Leblanc","64":"LeeSin","89":"Leona","127":"Lissandra","236":"Lucian","117":"Lulu","99":"Lux","54":"Malphite","90":"Malzahar","57":"Maokai","11":"MasterYi","21":"MissFortune","62":"MonkeyKing","82":"Mordekaiser","25":"Morgana","267":"Nami","75":"Nasus","111":"Nautilus","518":"Neeko","76":"Nidalee","56":"Nocturne","20":"Nunu","2":"Olaf","61":"Orianna","516":"Ornn","80":"Pantheon","78":"Poppy","555":"Pyke","246":"Qiyana","133":"Quinn","497":"Rakan","33":"Rammus","421":"RekSai","58":"Renekton","107":"Rengar","92":"Riven","68":"Rumble","13":"Ryze","113":"Sejuani","235":"Senna","875":"Sett","35":"Shaco","98":"Shen","102":"Shyvana","27":"Singed","14":"Sion","15":"Sivir","72":"Skarner","37":"Sona","16":"Soraka","50":"Swain","517":"Sylas","134":"Syndra","223":"TahmKench","163":"Taliyah","91":"Talon","44":"Taric","17":"Teemo","412":"Thresh","18":"Tristana","48":"Trundle","23":"Tryndamere","4":"TwistedFate","29":"Twitch","77":"Udyr","6":"Urgot","110":"Varus","67":"Vayne","45":"Veigar","161":"Velkoz","254":"Vi","112":"Viktor","8":"Vladimir","106":"Volibear","19":"Warwick","498":"Xayah","101":"Xerath","5":"XinZhao","157":"Yasuo","83":"Yorick","350":"Yuumi","154":"Zac","238":"Zed","115":"Ziggs","26":"Zilean","142":"Zoe","143":"Zyra"}
-	return switcher.get(championid)
-	
-def region_to_valid_region(region: str):
-	switcher = {
-		'RU':'RU',
-		'KR':'KR',
-		'BR':'BR1',
-		'OCE':'OC1',
-		'JP':'JP1',
-		'NA':'NA1',
-		'EUNE':'EUN1',
-		'EUW':'EUW1',
-		'TR':'TR1',
-		'LAN':'LA1',
-		'LAS':'LA2'
-			}
-	return switcher.get(region, "Invalid Region")
 
 def setup(bot):
 	bot.add_cog(League(bot))
