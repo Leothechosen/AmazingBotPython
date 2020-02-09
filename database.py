@@ -55,7 +55,7 @@ async def createdb():
 		id_team_1 integer,
 		id_team_2 integer,
 		id_league integer,
-		winning_team integer,
+		winning_team integer
 	);
 
 	CREATE TABLE Prediction (
@@ -87,22 +87,22 @@ async def createdb():
 					for z in range(len(rankings[y]["teams"])):
 						codes = rankings[y]
 						c.execute("INSERT INTO Team(code, name) VALUES (?, ?)", (rankings[y]['teams'][z]['code'], rankings[y]['teams'][z]['name']))
-		await session.close()
 		#Following array: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, LCSA (All spring split)
 		leagues = ["98767991299243165", "98767991302996019", "98767991310872058", "98767991314006698", "98767991331560952", "98767991332355509", "98767991343597634", "98767991349978712", "99332500638116286"]
 		for x in range(len(leagues)):
-			async with session.get("http://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagues[x], headers=headers) as response:
+			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagues[x], headers=headers) as response:
 				schedule_response = await response.json()
 				schedule = schedule_response["data"]["schedule"]["events"]
 				for y in range(len(schedule)):
-					if schedule[y]["state"] = "unstarted":
+					if schedule[y]["state"] == "unstarted":
 						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, score_team_1, score_team_2) VALUES (schedule[y]['match']['id'], (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][0]['code']), (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][1]['code']), (SELECT id FROM League WHERE code LIKE schedule[y]['league']['slug']), 'NULL'")
-					elif schedule[y]['match']['teams'][0]['result']['outcome'] == "win":
-						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, score_team_1, score_team_2) VALUES (schedule[y]['match']['id'], (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][0]['code']), (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][1]['code']), (SELECT id FROM League WHERE code LIKE schedule[y]['league']['slug']), (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][0]['code'])")
+					elif schedule[y]["match"]["teams"][0]["result"]["outcome"] == "win":
+						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, ?, ?, ?, ?)", (schedule[y]['match']['id'], ("SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][0]['code']"), ("SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][1]['code']"), ("SELECT id FROM League WHERE code LIKE schedule[y]['league']['slug']"), ("SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][0]['code']")))
 					else:
-						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, score_team_1, score_team_2) VALUES (schedule[y]['match']['id'], (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][0]['code']), (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][1]['code']), (SELECT id FROM League WHERE code LIKE schedule[y]['league']['slug']), (SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][1]['code'])")
+						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, ?, ?, ?, ?)", (schedule[y]['match']['id'], ("SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][0]['code']"), ("SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][1]['code']"), ("SELECT id FROM League WHERE code LIKE schedule[y]['league']['slug']"), ("SELECT id FROM Team WHERE code LIKE schedule[y]['match']['teams'][1]['code']")))
 	conn.commit()
 	conn.close()
+	await session.close()
 	return
 
 async def checkdiscord(ctx):
