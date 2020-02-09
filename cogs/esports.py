@@ -38,10 +38,10 @@ class eSports(commands.Cog):
 				await session.close()
 				rankings = (standings_response["data"]["standings"][0]["stages"][0]["sections"][0]["rankings"])
 				for x in range(len(rankings)):
-					ordinal = str(rankings[x]['ordinal'])
-					ordinal = await integerPrefix(self, ordinal)
-					ordinal_message += (ordinal + '\n')
 					for y in range(len(rankings[x]["teams"])):
+						ordinal = str(rankings[x]['ordinal'])
+						ordinal = await integerPrefix(self, ordinal)
+						ordinal_message += (ordinal + '\n')
 						teams_message += str(rankings[x]["teams"][y]["name"]) + '\n'
 						records_message += str(rankings[x]["teams"][y]["record"]["wins"]) + "-" + str(rankings[x]["teams"][y]["record"]["losses"]) + '\n'
 				embed = discord.Embed(title = tournament.upper() + " Standings", color=0xa9152b)
@@ -160,7 +160,13 @@ async def integerPrefix(self, ordinal):
 							"7":"7th",
 							"8":"8th",
 							"9":"9th",
-							"10":"10th"
+							"10":"10th",
+							"11":"11th",
+							"12":"12th",
+							"13":"13th",
+							"14":"14th",
+							"15":"15th",
+							"16":"16th"
 							}
 						return switcher.get(ordinal, "???")
 	
