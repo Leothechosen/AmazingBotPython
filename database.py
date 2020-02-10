@@ -130,17 +130,17 @@ async def updatematch(ctx):
 				schedule_response = await response.json()
 				scheduled = schedule_response["data"]["schedule"]["events"]
 				c.execute("SELECT min(id) FROM Match WHERE winning_team is NULL")
-				matches = c.fetchone()
+				match_id = c.fetchone()
 				for y in range(len(scheduled):
-					if scheduled[y]["match"]["id"] < matches:
+					if scheduled[y]["match"]["id"] < match_id:
 						pass
 					else:
 						if scheduled[y]["state"] == "unstarted":
 							break
 						elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
-							c.execute("UPDATE Match SET winning_team = ? WHERE id = (SELECT id FROM Team WHERE code LIKE ?)", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][0]["code"]))
+							c.execute("UPDATE Match SET winning_team = (SELECT id FROM Team WHERE code LIKE ?) WHERE id = NULL", (scheduled[y]["match"]["teams"][0]["code"],))
 						else:
-							c.execute("UPDATE Match SET winning_team = ? WHERE id = (SELECT id FROM Team WHERE code LIKE ?)", (scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"]))
+							c.execute("UPDATE Match SET winning_team = (SELECT id FROM Team WHERE code like ?) WHERE id = NULL", (scheduled[y]["match"]["teams"][1]["code"],))
 	conn.commit()
 	conn.close()
 	await session.close()
