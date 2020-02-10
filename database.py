@@ -93,14 +93,16 @@ async def createdb():
 			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagues[x], headers=headers) as response:
 				schedule_response = await response.json()
 				scheduled = schedule_response["data"]["schedule"]["events"]
+				d = "2020-01-01T00:00:00Z"
 				for y in range(len(scheduled)):
-					if scheduled[y]["state"] == "unstarted":
-						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], NULL))
-					elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
-						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["match"]["teams"][0]["code"]))
-					else:
-						c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["match"]["teams"][1]["code"]))
-					conn.commit()
+					if d < scheduled[y]["startTime"]:
+						if scheduled[y]["state"] == "unstarted":
+							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], None))
+						elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
+							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["match"]["teams"][0]["code"]))
+						else:
+							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["match"]["teams"][1]["code"]))
+	conn.commit()
 	conn.close()
 	await session.close()
 	return
@@ -117,4 +119,33 @@ async def checkdiscord(ctx):
 		await ctx.send(data)
 	conn.commit()
 	conn.close()
+	
+async def updatematch(ctx):
+	conn = sqlite.connect('Predictions.db')
+	c = conn.cursor()
+	leagues = ["98767991299243165", "98767991302996019", "98767991310872058", "98767991314006698", "98767991331560952", "98767991332355509", "98767991343597634", "98767991349978712", "99332500638116286"]
+	async with aiohttp.ClientSession() as session:
+		for x in range(len(leagues)):
+			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagues[x], headers=headers) as response:
+				schedule_response = await response.json()
+				scheduled = schedule_response["data"]["schedule"]["events"]
+				c.execute("SELECT min(id) FROM Match WHERE winning_team is NULL")
+				matches = c.fetchone()
+				for y in range(len(scheduled):
+					if scheduled[y]["match"]["id"] < matches:
+						pass
+					else:
+						if scheduled[y]["state"] == "unstarted":
+							break
+						elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
+							c.execute("UPDATE Match SET winning_team = ? WHERE id = (SELECT id FROM Team WHERE code LIKE ?)", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][0]["code"]))
+						else:
+							c.execute("UPDATE Match SET winning_team = ? WHERE id = (SELECT id FROM Team WHERE code LIKE ?)", (scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"]))
+	conn.commit()
+	conn.close()
+	await session.close()
+	return
+			
+		
+		
 	
