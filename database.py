@@ -121,9 +121,10 @@ async def checkdiscord(ctx):
 	conn.close()
 	
 async def updatematch(ctx):
-	conn = sqlite.connect('Predictions.db')
+	conn = sqlite3.connect('Predictions.db')
 	c = conn.cursor()
 	leagues = ["98767991299243165", "98767991302996019", "98767991310872058", "98767991314006698", "98767991331560952", "98767991332355509", "98767991343597634", "98767991349978712", "99332500638116286"]
+	headers = {'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'}
 	async with aiohttp.ClientSession() as session:
 		for x in range(len(leagues)):
 			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagues[x], headers=headers) as response:
@@ -131,8 +132,8 @@ async def updatematch(ctx):
 				scheduled = schedule_response["data"]["schedule"]["events"]
 				c.execute("SELECT min(id) FROM Match WHERE winning_team is NULL")
 				match_id = c.fetchone()
-				for y in range(len(scheduled):
-					if scheduled[y]["match"]["id"] < match_id:
+				for y in range(len(scheduled)):
+					if int(scheduled[y]["match"]["id"]) < match_id[0]:
 						pass
 					else:
 						if scheduled[y]["state"] == "unstarted":
@@ -144,6 +145,7 @@ async def updatematch(ctx):
 	conn.commit()
 	conn.close()
 	await session.close()
+	await ctx.send("Updatematch function didn't crash")
 	return
 			
 		

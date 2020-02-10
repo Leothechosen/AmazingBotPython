@@ -27,6 +27,24 @@ class Misc(commands.Cog):
 	async def restartservertime(self, ctx):
 		await ctx.send("Restarting the clock...")
 		await theserverTime(self)
+
+	@commands.command(name="temp")
+	async def temp(self, ctx, temper = None):
+		if temper == None:
+			await ctx.send("Usage: -temp [temperature]. For example: -temp 14F will return -10C")
+			return
+		try:
+			if temper[-1] == "F":
+				temper = ((float(temper[:-1]) - 32) * (5/9))
+				await ctx.send(str(temper) + "C")
+			elif temper[-1] == "C":
+				temper = ((float(temper[:-1])) * (9/5) + 32)
+				await ctx.send(str(temper) + "F")
+			else:
+				await ctx.send("Invalid request")
+		except:
+			await ctx.send("An error occurred. This is likely due to the fact that you have a non-numerical character in your request (excluding the trailing F/C)")
+			
 		
 async def theserverTime(self):
 	minutecheck = datetime.now(timezone('CET'))

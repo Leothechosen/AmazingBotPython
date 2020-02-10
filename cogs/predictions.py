@@ -46,6 +46,12 @@ class Predictions(commands.Cog):
 			await ctx.send('Timeout')
 		else:
 			await ctx.send('Good?')
+			
+	@prediction.command(name = "update")
+	@commands.is_owner()
+	async def update(self, ctx):
+		await db.updatematch(ctx)
+
 	
 
 async def test():

@@ -60,7 +60,7 @@ class eSports(commands.Cog):
 		thumbnail = ""
 		team_record = ""
 		next_4_matches = 0
-		if league == None:
+		if league is None:
 			await ctx.send("Usage: `-esports schedule [league] (Optional: [team abbreviation])`. Supported leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
 			return
 		leaguename = await utils.sanitizeinput(league)
@@ -73,12 +73,12 @@ class eSports(commands.Cog):
 			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagueid, headers=headers) as response:
 				schedule_response = await response.json()
 				await session.close()
-				currenttime = datetime.now(timezone('UTC')).strftime("%Y-%m-%d %H:%M:%S")
-				currenttime = datetime.strptime(currenttime, "%Y-%m-%d %H:%M:%S")
+				print(datetime.now())
+				currenttime = datetime.utcnow()
 				scheduled_matches = schedule_response["data"]["schedule"]["events"]
 				for x in range(len(scheduled_matches)):
 					if scheduled_matches[x]["state"] == "unstarted":
-						if team == None:
+						if team is None:
 							starttime = re.sub('[T]', " ", scheduled_matches[x]["startTime"])
 							starttime = re.sub('[Z]', "", starttime)
 							starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S")
