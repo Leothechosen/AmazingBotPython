@@ -5,6 +5,7 @@ from pytz import timezone
 from datetime import datetime, timedelta
 from discord.ext import commands
 from dotenv import load_dotenv
+import subprocess
 
 load_dotenv()
 amazingserverid = int(os.getenv('AMAZING_SERVER_ID'))
@@ -44,7 +45,14 @@ class Misc(commands.Cog):
 				await ctx.send("Invalid request")
 		except:
 			await ctx.send("An error occurred. This is likely due to the fact that you have a non-numerical character in your request (excluding the trailing F/C)")
-			
+	
+	@commands.command(name="gitpull")
+	@commands.is_owner()
+	async def gitpull(self, ctx):
+		try:
+			subprocess.call(["git", "pull"])
+		except:
+			await ctx.send("gitpull error")
 		
 async def theserverTime(self):
 	minutecheck = datetime.now(timezone('CET'))
