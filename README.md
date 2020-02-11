@@ -12,7 +12,7 @@ Commands (Prefix is -) :
    - team [team]
    - schedule [league]
 4. sourcecode
-5. poll [question], [answer1], [answer2], ..., [answer9]
+5. poll [question], [answer1], [answer2], ..., [answer9], [time_in_seconds] (Max: 300 seconds)
 
 Planned future commands:
 - Expanding the rank command to include top champions played, recent games, and progress in ranking by storing the last rank that was called. For example, if I were to call my own rank (MZLeothechosen: Plat IV 0LP) and then later when I get to Plat III and call rank again, show Plat III (+1) 34LP (+34), but in a cleaner way. Legends of Runeterra's rank will also be added to this command, as soon as it becomes feasible to do so. 
