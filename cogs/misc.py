@@ -35,12 +35,22 @@ class Misc(commands.Cog):
 			await ctx.send("Usage: -temp [temperature]. For example: -temp 14F will return -10C")
 			return
 		try:
-			if temper[-1] == "F":
-				temper = ((float(temper[:-1]) - 32) * (5/9))
-				await ctx.send(str(temper) + "C")
-			elif temper[-1] == "C":
-				temper = ((float(temper[:-1])) * (9/5) + 32)
-				await ctx.send(str(temper) + "F")
+			tempunit = temper[-1].upper()
+			temper = temper[:-1]
+			print(tempunit)
+			print(temper)
+			if tempunit == "F":
+				tempC = (float(temper) - 32) * (5/9)
+				tempK = tempC + 273.15
+				await ctx.send(temper + tempunit + " = " + str(tempC) + "C = " + str(tempK) + "K")
+			elif tempunit == "C":
+				tempF = (float(temper) * (9/5)) + 32
+				tempK = float(temper) + 273.15
+				await ctx.send(temper + tempunit + " = " + str(tempF) + "F = " + str(tempK) + "K")
+			elif tempunit == "K":
+				tempC = float(temper) - 273.15
+				tempF = (tempC * (9/5)) + 32
+				await ctx.send(temper + tempunit + " = " + str(tempC) + "C = " + str(tempF) + "F")
 			else:
 				await ctx.send("Invalid request")
 		except:
