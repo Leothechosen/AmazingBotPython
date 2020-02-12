@@ -54,9 +54,11 @@ async def createdb():
 		id integer,
 		id_team_1 integer,
 		id_team_2 integer,
+		id_winning_team integer,
 		id_league integer,
-		winning_team integer
-	);
+		block_name text,
+		start_time datetime
+			);
 
 	CREATE TABLE Prediction (
 		id integer PRIMARY KEY AUTOINCREMENT,
@@ -64,6 +66,7 @@ async def createdb():
 		id_match integer,
 		id_team_predicted integer
 	);
+	
 	INSERT INTO League(code, name) VALUES ("lcs", "LCS");
 	INSERT INTO League(code, name) VALUES ("lec", "LEC");
 	INSERT INTO League(code, name) VALUES ("lck", "LCK");
@@ -97,11 +100,12 @@ async def createdb():
 				for y in range(len(scheduled)):
 					if d < scheduled[y]["startTime"]:
 						if scheduled[y]["state"] == "unstarted":
-							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], None))
+							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), ?, (SELECT id FROM League WHERE code LIKE ?), ?, ?)", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], None, scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"]))
 						elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
-							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["match"]["teams"][0]["code"]))
+							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), ?, (SELECT id FROM League WHERE code LIKE ?), ?, ?)", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"]))
 						else:
-							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_league, winning_team) VALUES (?, (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?))", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["match"]["teams"][1]["code"]))
+							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), ?, (SELECT id FROM League WHERE code LIKE ?), ?, ?)", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"]))
+							
 	conn.commit()
 	conn.close()
 	await session.close()
@@ -123,6 +127,7 @@ async def checkdiscord(ctx):
 async def updatematch(ctx):
 	conn = sqlite3.connect('Predictions.db')
 	c = conn.cursor()
+	#Following array: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, LCSA (All spring split)
 	leagues = ["98767991299243165", "98767991302996019", "98767991310872058", "98767991314006698", "98767991331560952", "98767991332355509", "98767991343597634", "98767991349978712", "99332500638116286"]
 	headers = {'x-api-key': '0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z'}
 	async with aiohttp.ClientSession() as session:
@@ -130,18 +135,17 @@ async def updatematch(ctx):
 			async with session.get("https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-US&leagueId=" + leagues[x], headers=headers) as response:
 				schedule_response = await response.json()
 				scheduled = schedule_response["data"]["schedule"]["events"]
-				c.execute("SELECT min(id) FROM Match WHERE winning_team is NULL")
+				c.execute("SELECT min(id) FROM Match WHERE id_winning_team is NULL")
 				match_id = c.fetchone()
+				d = "2020-01-01T00:00:00Z"
 				for y in range(len(scheduled)):
-					if int(scheduled[y]["match"]["id"]) < match_id[0]:
-						pass
-					else:
+					if d < scheduled[y]["startTime"]:
 						if scheduled[y]["state"] == "unstarted":
-							break
+							c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = ?, id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], None, scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
 						elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
-							c.execute("UPDATE Match SET winning_team = (SELECT id FROM Team WHERE code LIKE ?) WHERE id = NULL", (scheduled[y]["match"]["teams"][0]["code"],))
+							c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = ?, id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
 						else:
-							c.execute("UPDATE Match SET winning_team = (SELECT id FROM Team WHERE code like ?) WHERE id = NULL", (scheduled[y]["match"]["teams"][1]["code"],))
+							c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = ?, id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
 	conn.commit()
 	conn.close()
 	await session.close()
