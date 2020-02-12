@@ -118,9 +118,6 @@ async def checkdiscord(ctx):
 	data = c.fetchone()
 	if data == None:
 		c.execute("INSERT INTO User(discord_id, name) VALUES (?, ?)", (ctx.author.id, ctx.author.name))
-		await ctx.send("User added to Table User")
-	else:
-		await ctx.send(data)
 	conn.commit()
 	conn.close()
 	
