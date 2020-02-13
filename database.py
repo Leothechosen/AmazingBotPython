@@ -2,20 +2,6 @@ import aiohttp
 import asyncio
 import sqlite3
 
-def getTournamentId(self, tournament):
-	tournament = tournament.upper()
-	switcher = {
-		"LCS":"103462439438682788",
-		"LEC":"103462459318635408",
-		"LCK":"103540363364808496",
-		"LPL":"103462420723438502",
-		"OPL":"103535401218775284",	
-		"CBLOL":"103478354329449186",
-		"TCL":"103495775740097550",
-		"LJL":"103540397353089204",
-		"LCSA":"103462454280724883"
-			}
-			
 async def checkDB():
 	try:
 		dbfile = open('Predictions.db')
