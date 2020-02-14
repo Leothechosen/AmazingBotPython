@@ -2,20 +2,6 @@ import aiohttp
 import asyncio
 import sqlite3
 
-def getTournamentId(self, tournament):
-	tournament = tournament.upper()
-	switcher = {
-		"LCS":"103462439438682788",
-		"LEC":"103462459318635408",
-		"LCK":"103540363364808496",
-		"LPL":"103462420723438502",
-		"OPL":"103535401218775284",	
-		"CBLOL":"103478354329449186",
-		"TCL":"103495775740097550",
-		"LJL":"103540397353089204",
-		"LCSA":"103462454280724883"
-			}
-			
 async def checkDB():
 	try:
 		dbfile = open('Predictions.db')
@@ -148,7 +134,79 @@ async def updatematch(ctx):
 	await session.close()
 	await ctx.send("Updatematch function didn't crash")
 	return
-			
-		
-		
+
+async def get_next_block_and_matches(league_name):
+	conn = sqlite3.connect('Predictions.db')
+	c = conn.cursor()
+	c.execute("SELECT DISTINCT o.block_name FROM Match o WHERE o.id_league = (SELECT id FROM League WHERE name = ?) and strftime('%Y-%m-%d %H-%M-%S', 'now') < (SELECT min(i.start_time) FROM Match i WHERE i.id_league = (SELECT id FROM League WHERE name = ?) and i.block_name = o.block_name) ORDER BY start_time", (league_name, league_name))
+	block_name = c.fetchone()[0]
+	c.execute("SELECT * from Match WHERE id_league = (SELECT id FROM league WHERE name = ?) and block_name = ?", (league_name, block_name))
+	matches = c.fetchall()
+	return block_name, matches
+
+async def fetchTeamIds(team_1, team_2):
+	conn = sqlite3.connect('Predictions.db')
+	c = conn.cursor()
+	c.execute("SELECT name FROM Team WHERE id = ?", (team_1,))
+	team_1 = c.fetchone()[0]
+	c.execute("SELECT name FROM Team WHERE id = ?", (team_2,))
+	team_2 = c.fetchone()[0]
+	conn.close()
+	return team_1, team_2
+
+async def writePredictions(predicted_team, match, user):
+	predictioncheck = None
+	conn = sqlite3.connect('Predictions.db')
+	c = conn.cursor()
+	c.execute("SELECT id_match FROM Prediction WHERE id_match = ? and id_user = (SELECT id FROM User WHERE discord_id = ?)", (match, user))
+	predictioncheck = c.fetchone()
+	if predictioncheck == None:
+		c.execute("INSERT INTO Prediction (id_user, id_match, id_team_predicted) VALUES ((SELECT id FROM User WHERE discord_id = ?), ?, (SELECT id FROM Team WHERE name = ?))", (user, match, predicted_team))
+	else:
+		c.execute("UPDATE Prediction SET id_team_predicted = (SELECT id FROM Team WHERE name = ?) WHERE id_user = (SELECT id FROM User WHERE discord_id = ?) and id_match = ?", (predicted_team, user, match))
+	conn.commit()
+	conn.close()
 	
+async def fetchLeaguesPredicted(user):
+	conn = sqlite3.connect('Predictions.db')
+	c = conn.cursor()
+	c.execute("select distinct id_league from match where id in (select id_match from prediction p where p.id_user = (select id from user where discord_id = ?)) order by 1", (user,))
+	predicted_leagues = c.fetchall()
+	return predicted_leagues
+	
+async def fetchPredictions(user, league):
+	return
+		
+
+async def fetchCorrect(league, discord_id):
+	conn = sqlite3.connect('Predictions.db')
+	c = conn.cursor()
+	block_name_msg = ""
+	correct_pred_msg = ""
+	wrong_pred_msg = ""
+	if league == "Overall":
+		c.execute("select c.block block, c.correct correct, (select count(*) from prediction p, match m where m.id = p.id_match and p.id_user = (select id from user where discord_id = ?) and m.block_name = c.block group by m.block_name) - c.correct wrong from (select m.block_name block, count(*) correct from prediction p, match m where m.id = p.id_match and p.id_team_predicted = m.id_winning_team and p.id_user = (select id from user where discord_id = ?) group by m.block_name) c", (discord_id, discord_id)) #All Leagues Per Block
+		overall_per_block = c.fetchall()
+		for x in range(len(overall_per_block)):
+			block_name_msg += str(overall_per_block[x][0]) + '\n'
+			correct_pred_msg += str(overall_per_block[x][1]) + '\n'
+			wrong_pred_msg += str(overall_per_block[x][2]) + '\n'
+		c.execute("select c.correct correct, (select count(*) from prediction p, match m where m.id = p.id_match and p.id_user = (select id from user where discord_id = ?)) - c.correct wrong from (select count(*) correct from prediction p, match m where m.id = p.id_match and p.id_team_predicted = m.id_winning_team and p.id_user = (select id from user where discord_id = ?)) c;", (discord_id, discord_id)) #All Leagues Overall
+		overall = c.fetchone()
+		block_name_msg += "Overall"
+		correct_pred_msg += str(overall[0])
+		wrong_pred_msg += str(overall[1])
+	else:
+		c.execute("select c.block block, c.correct correct, (select count(*) from prediction p, match m where m.id = p.id_match and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?) and m.block_name = c.block group by m.block_name) - c.correct wrong from (select m.block_name block, count(*) correct from prediction p, match m where m.id = p.id_match and p.id_team_predicted = m.id_winning_team and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?) group by m.block_name) c;", (discord_id, league, discord_id, league)) #1 League, Per Block
+		league_per_block = c.fetchall()
+		for x in range(len(league_per_block))	:
+			block_name_msg += str(league_per_block[x][0]) + '\n'
+			correct_pred_msg += str(league_per_block[x][1]) + '\n'
+			wrong_pred_msg += str(league_per_block[x][2]) + '\n'
+		c.execute("select c.correct correct, (select count(*) from prediction p, match m where m.id = p.id_match and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?)) - c.correct wrong from (select count(*) correct from prediction p, match m where m.id = p.id_match and p.id_team_predicted = m.id_winning_team and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?)) c;", (discord_id, league, league, discord_id)) #1 League, Overall
+		league_overall = c.fetchone()
+		block_name_msg += "Overall"
+		correct_pred_msg += str(league_overall[0])
+		wrong_pred_msg += str(league_overall[1])
+	conn.close()
+	return block_name_msg, correct_pred_msg, wrong_pred_msg
