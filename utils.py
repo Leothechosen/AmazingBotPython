@@ -19,7 +19,11 @@ async def integerPrefix(ordinal):
 		"13":"13th",
 		"14":"14th",
 		"15":"15th",
-		"16":"16th"
+		"16":"16th",
+		"17":"17th",
+		"18":"18th",
+		"19":"19th",
+		"20":"20th"
 		}
 	return switcher.get(ordinal, "???")
 	
