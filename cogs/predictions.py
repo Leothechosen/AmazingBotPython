@@ -28,8 +28,9 @@ class Predictions(commands.Cog):
 	@commands.group(pass_context=True, aliases = ["Prediction"])
 	async def prediction(self, ctx):
 		await db.checkdiscord(ctx)
+		await db.updatematch(ctx)
 		if ctx.invoked_subcommand == None:
-			await ctx.send("Subcommands are pick, view, and record")
+			await ctx.send("Subcommands are pick, view, record and leaderboard")
 		return
 	
 	@prediction.command(name = "pick")
@@ -46,11 +47,11 @@ class Predictions(commands.Cog):
 		embed = discord.Embed(title = "Predictions: League", color = 0xa9152b)
 		embed.add_field(name = "Which League would you like to predict?", value = leagues_message, inline=False)
 		msg = await ctx.send(embed=embed)
-		for x in range(len(reaction_list)):
-			await discord.Message.add_reaction(msg, reaction_list[x])
-			allowed_reactions.append(reaction_list[x])	
 		def check(reaction, user):
 			return user.id == original_user and reaction.emoji in allowed_reactions and reaction.message.id == msg.id
+		for x in range(len(reaction_list)):
+			await discord.Message.add_reaction(msg, reaction_list[x])
+			allowed_reactions.append(reaction_list[x])
 		try:
 			react = await self.bot.wait_for(event = "reaction_add", timeout=60.0, check=check)
 		except asyncio.TimeoutError:
@@ -58,6 +59,11 @@ class Predictions(commands.Cog):
 			await discord.Message.edit(msg, embed=embed)
 			await discord.Message.clear_reactions(msg)
 		league = leagues_list[reaction_list.index(react[0].emoji)]
+		if league == "LPL":
+			embed.set_field_at(0, name = "LPL :(", value = "Unfortunately, LPL is on hiatus due to the Coronavirus. This means that there are no matches to predict for the time being.", inline=False)
+			await discord.Message.edit(msg, embed=embed)
+			await discord.Message.clear_reactions(msg)
+			return
 		block_name, matches = await db.get_next_block_and_matches(league)
 		allowed_reactions = ['1️⃣', '2️⃣']
 		for x in range(len(matches)): 
