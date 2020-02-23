@@ -63,15 +63,21 @@ class Misc(commands.Cog):
 			subprocess.call(["git", "pull"])
 		except:
 			await ctx.send("gitpull error")
+			
+	@commands.command(name="avatar")
+	async def avatar(self, ctx):
+		embed = discord.Embed(title = "Avatar", color = 0xa9152b)
+		embed.set_image(url = "https://i.imgur.com/TwEsQ4D.png")
+		embed.add_field(name = "Info", value = "AmazingBot's Avatar was made by Sel.\n https://twitter.com/owocifer \n https://www.instagram.com/sel.bro", inline = False)
+		await ctx.send(embed=embed)
+		return
 		
 async def theserverTime(self):
 	minutecheck = datetime.now(timezone('CET'))
 	fmt = '%H:%M %Z'
 	fmt2 ='%s'
-	minutecheck = minutecheck.strftime(fmt2)
-	minutecheck = int(minutecheck)
-	minutecheck = minutecheck % 60
-	minutecheck = 61 - minutecheck
+	minutecheck = int(minutecheck.strftime(fmt2))
+	minutecheck = 61 - (minutecheck % 60)
 	await asyncio.sleep(minutecheck)
 	while True:
 		guild = self.bot.get_guild(id = amazingserverid)
