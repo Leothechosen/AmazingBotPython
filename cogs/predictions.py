@@ -5,6 +5,8 @@ import os
 import sqlite3
 import sys
 import importlib
+import schedule
+import time
 sys.path.append('../database')
 import database as db
 import utils
@@ -18,7 +20,13 @@ class Predictions(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.bot.loop.create_task(db.checkDB())
-	
+	@commands.Cog.listener()
+	async def on_ready(self):
+		schedule.every().hour.do(autoupdatematches)
+		while True:
+			schedule.run_pending()
+			asyncio.sleep(3600)
+
 	@commands.command(name = "refreshcache")
 	@commands.is_owner()
 	async def refreshcache(self, ctx):
@@ -28,7 +36,7 @@ class Predictions(commands.Cog):
 	@commands.group(pass_context=True, aliases = ["Prediction"])
 	async def prediction(self, ctx):
 		await db.checkdiscord(ctx)
-		await db.updatematch(ctx)
+		#await db.updatematch(ctx)
 		if ctx.invoked_subcommand == None:
 			await ctx.send("Subcommands are pick, view, record and leaderboard")
 		return
@@ -91,6 +99,7 @@ class Predictions(commands.Cog):
 		embed.set_field_at(0, name = "Your Predictions", value = end_message, inline=False)
 		await discord.Message.edit(msg, embed=embed)
 		await discord.Message.clear_reactions(msg)
+		return
 	
 	@prediction.command(name = "view")
 	async def view(self, ctx):
@@ -249,10 +258,12 @@ class Predictions(commands.Cog):
 	async def update(self, ctx):
 		await db.updatematch(ctx)
 		return
-	
 
-async def test():
-	print("test")
+async def autoupdatematches():
+	await db.updatematch()
+	print("Matches Updated")
+	return
 	
 def setup(bot): 
 	bot.add_cog(Predictions(bot))
+	
