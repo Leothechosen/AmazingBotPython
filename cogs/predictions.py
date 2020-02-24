@@ -20,12 +20,14 @@ class Predictions(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.bot.loop.create_task(db.checkDB())
-	@commands.Cog.listener()
-	async def on_ready(self):
-		schedule.every().hour.do(autoupdatematches)
-		while True:
-			schedule.run_pending()
-			asyncio.sleep(3600)
+		self.updating = False
+		
+	#@commands.Cog.listener()
+	#async def on_ready(self):
+		#schedule.every().hour.do(autoupdatematches)
+		#while True:
+			#schedule.run_pending()
+			#time.sleep(3600)
 
 	@commands.command(name = "refreshcache")
 	@commands.is_owner()
@@ -36,7 +38,10 @@ class Predictions(commands.Cog):
 	@commands.group(pass_context=True, aliases = ["Prediction"])
 	async def prediction(self, ctx):
 		await db.checkdiscord(ctx)
-		#await db.updatematch(ctx)
+		if self.updating == False:
+			self.updating = True
+			await db.updatematch(ctx)
+			self.updating = False
 		if ctx.invoked_subcommand == None:
 			await ctx.send("Subcommands are pick, view, record and leaderboard")
 		return
@@ -254,9 +259,13 @@ class Predictions(commands.Cog):
 		return
 
 	@prediction.command(name = "update")
-	@commands.is_owner()
+	@commands.has_any_role("Moderators", "Bot Tester")
 	async def update(self, ctx):
-		await db.updatematch(ctx)
+		try:
+			await db.updatematch(ctx)
+			await ctx.send("Update Match didn't crash")
+		except:
+			await ctx.send("There was an error")
 		return
 
 async def autoupdatematches():
