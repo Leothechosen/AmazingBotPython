@@ -64,6 +64,9 @@ class eSports(commands.Cog):
 			await ctx.send("Usage: `-esports schedule [league] (Optional: [team abbreviation])`. Supported leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
 			return
 		leaguename = await utils.sanitizeinput(league)
+		if leaguename == "LPL":
+			await ctx.send("Unfortunately, LPL is on hiatus due to the Coronavirus. This means that there is no schedule for the time being.")
+			return
 		leagueid = await utils.getLeagueId(league)
 		if leagueid == "Invalid League":
 			await ctx.send("League not supported. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)")
