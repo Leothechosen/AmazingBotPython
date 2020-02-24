@@ -29,6 +29,10 @@ async def reload(ctx, extension):
 	bot.load_extension(f'cogs.{extension}')
 	await ctx.send(f'{extension} reloaded')
 	
+@bot.command()
+async def ping(ctx):
+	await ctx.send("Pong")
+	return
 
 for filename in os.listdir('./cogs'): 
 	if filename.endswith('.py'):
