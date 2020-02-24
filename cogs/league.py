@@ -37,7 +37,7 @@ class League(commands.Cog):
 				async with session.get("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + leagueapikey) as response:
 					if response.status != 200:
 						await ctx.send("Riot API returned a bad request. Check for errors in your request, or tell Leo to reset his API key.")
-						return;
+						return
 					summoneridrequest = await response.json()
 					summonerid = summoneridrequest['id']
 				async with session.get("https://" + region + ".api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerid + "?api_key=" + leagueapikey) as response:
@@ -84,8 +84,6 @@ class League(commands.Cog):
 	async def profile(self, ctx, name = None, region = None):
 		mastery_message = ""
 		profileicon = ""
-		accountid = ""
-		summonerlevel = ""
 		summonerid = ""
 		if name == None:
 			await ctx.send("Usage: `-league profile [Summoner_name] [region]`. Valid regions are: RU, KR, BR, OCE, JP, NA, EUNE, EUW, TR, LAN, and LAS.")
