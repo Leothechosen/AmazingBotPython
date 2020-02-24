@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import sqlite3
 
+
 async def checkDB():
 	try:
 		dbfile = open('Predictions.db')
@@ -91,7 +92,6 @@ async def createdb():
 							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), ?, ?)", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"]))
 						else:
 							c.execute("INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), ?, ?)", (scheduled[y]["match"]["id"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"]))
-							
 	conn.commit()
 	conn.close()
 	await session.close()
@@ -121,14 +121,22 @@ async def updatematch(ctx):
 				c.execute("SELECT min(id) FROM Match WHERE id_winning_team is NULL")
 				match_id = c.fetchone()
 				d = "2020-01-01T00:00:00Z"
-				for y in range(len(scheduled)):
-					if d < scheduled[y]["startTime"]:
-						if scheduled[y]["state"] == "unstarted":
-							c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = ?, id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], None, scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
-						elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
-							c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id From Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
-						else:
-							c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id FROM Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
+				try:
+					for y in range(len(scheduled)):
+						if d < scheduled[y]["startTime"]:
+							if scheduled[y]["state"] == "unstarted":
+								c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = ?, id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], None, scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
+							elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
+								c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id From Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
+							else:
+								c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id FROM Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
+				except:
+					f = open("errorfile.txt", "w")
+					f.write("JSON = " + str(scheduled) + '\nFailed at y = ' + str(y))
+					f.close()
+					print("Update match errored")
+					await ctx.send("Sorry, there was an unexpected error. Please try again. If it persists, ping Leo.")
+					return
 	conn.commit()
 	conn.close()
 	await session.close()
@@ -171,7 +179,6 @@ async def fetchLeaguesPredicted(user):
 	c = conn.cursor()
 	c.execute("select distinct id_league from match where id in (select id_match from prediction p where p.id_user = (select id from user where discord_id = ?))", (user,))
 	predicted_leagues = c.fetchall()
-	print(predicted_leagues)
 	conn.close()
 	return predicted_leagues
 	
@@ -249,7 +256,6 @@ async def fetchCorrect(league, discord_id):
 	if league == "Overall":
 		c.execute("select c.block block, c.correct correct, (select count(*) from prediction p, match m where m.id_winning_team NOT NULL and m.id = p.id_match and p.id_user = (select id from user where discord_id = ?) and m.block_name = c.block group by m.block_name) - c.correct wrong from (select m.block_name block, count(*) correct from prediction p, match m where m.id = p.id_match and p.id_team_predicted = m.id_winning_team and p.id_user = (select id from user where discord_id = ?) group by m.block_name) c", (discord_id, discord_id)) #All Leagues Per Block
 		overall_per_block = c.fetchall()
-		print(overall_per_block)
 		for x in range(len(overall_per_block)):
 			block_name_msg += str(overall_per_block[x][0]) + '\n'
 			correct_pred_msg += str(overall_per_block[x][1]) + '\n'
@@ -262,14 +268,12 @@ async def fetchCorrect(league, discord_id):
 	else:
 		c.execute("select c.block block, c.correct correct, (select count(*) from prediction p, match m where m.id_winning_team NOT NULL and m.id = p.id_match and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?) and m.block_name = c.block group by m.block_name) - c.correct wrong from (select m.block_name block, count(*) correct from prediction p, match m where m.id = p.id_match and p.id_team_predicted = m.id_winning_team and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?) group by m.block_name) c;", (discord_id, league, discord_id, league)) #1 League, Per Block
 		league_per_block = c.fetchall()
-		print(league_per_block)
 		for x in range(len(league_per_block))	:
 			block_name_msg += str(league_per_block[x][0]) + '\n'
 			correct_pred_msg += str(league_per_block[x][1]) + '\n'
 			wrong_pred_msg += str(league_per_block[x][2]) + '\n'
 		c.execute("select c.correct correct, (select count(*) from prediction p, match m where m.id_winning_team not NULL and m.id = p.id_match and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?)) - c.correct wrong from (select count(*) correct from prediction p, match m where m.id = p.id_match and p.id_team_predicted = m.id_winning_team and p.id_user = (select id from user where discord_id = ?) and m.id_league = (select id from league where name = ?)) c;", (discord_id, league, discord_id, league)) #1 League, Overall
 		league_overall = c.fetchone()
-		print(league_overall)
 		block_name_msg += "Overall"
 		correct_pred_msg += str(league_overall[0])
 		wrong_pred_msg += str(league_overall[1])
@@ -367,7 +371,6 @@ async def fetchLeaderboard(league):
 						w.id_user = u.id
 					order by 2 desc, 3 asc;''')
 		leaderboard_data = c.fetchall()
-		print(leaderboard_data)
 	for x in range(len(leaderboard_data)):
 		users.append(leaderboard_data[x][0])
 		record.append(str(leaderboard_data[x][1]) + "-" + str(leaderboard_data[x][2]))
