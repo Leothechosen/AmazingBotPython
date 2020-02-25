@@ -6,7 +6,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
-apikey = os.getenv('RIOT_API_KEY')
+apikey = os.getenv("RIOT_API_KEY")
 
 
 class Lor(commands.Cog):
@@ -30,21 +30,23 @@ class Lor(commands.Cog):
         if region.lower() not in valid_regions:
             await ctx.send("Invalid region. Supported regions are: Americas, Asia, Europe")
             return
-        embed = discord.Embed(title="LoR Master Tier in " +
-                              region.title(), color=0xa9152b)
+        embed = discord.Embed(title="LoR Master Tier in " + region.title(), color=0xA9152B)
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://" + region + ".api.riotgames.com/lor/ranked/v1/leaderboards?api_key=" + apikey) as response:
+            async with session.get(
+                "https://" + region + ".api.riotgames.com/lor/ranked/v1/leaderboards?api_key=" + apikey
+            ) as response:
                 if response.status != 200:
-                    await ctx.send("Riot API returned a bad request. Check for errors, or tell Leo to reset his API key.")
+                    await ctx.send(
+                        "Riot API returned a bad request. Check for errors, or tell Leo to reset his API key."
+                    )
                     return
                 leaderboards = await response.json()
                 for x in range(len(leaderboards["players"])):
-                    rank_message += str(x+1) + '\n'
+                    rank_message += str(x + 1) + "\n"
                 embed.add_field(name="Rank", value=rank_message, inline=True)
                 for x in range(len(leaderboards["players"])):
-                    leaderboard_message += leaderboards["players"][x]["name"] + '\n'
-                embed.add_field(
-                    name="Name", value=leaderboard_message, inline=True)
+                    leaderboard_message += leaderboards["players"][x]["name"] + "\n"
+                embed.add_field(name="Name", value=leaderboard_message, inline=True)
         await session.close()
         await ctx.send(embed=embed)
 
