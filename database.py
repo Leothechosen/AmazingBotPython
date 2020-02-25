@@ -136,15 +136,16 @@ async def updatematch(ctx):
                 try:
                     for y in range(len(scheduled)):
                         if d < scheduled[y]["startTime"]:
-                            if scheduled[y]["state"] == "unstarted":
-                                c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = ?, id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (
-                                    scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], None, scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
-                            elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
-                                c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id From Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (
-                                    scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
-                            else:
-                                c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id FROM Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (
-                                    scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
+                            if scheduled[y]["type"] == "match":
+                                if scheduled[y]["state"] == "unstarted":
+                                    c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = ?, id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (
+                                        scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], None, scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
+                                elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
+                                    c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id From Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (
+                                        scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
+                                else:
+                                    c.execute("UPDATE Match SET id_team_1 = (SELECT id FROM Team WHERE code LIKE ?), id_team_2 = (SELECT id FROM Team WHERE code LIKE ?), id_winning_team = (SELECT id FROM Team WHERE code LIKE ?), id_league = (SELECT id FROM League WHERE code LIKE ?), block_name = ?, start_time = ? WHERE id = ?", (
+                                        scheduled[y]["match"]["teams"][0]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["match"]["teams"][1]["code"], scheduled[y]["league"]["slug"], scheduled[y]["blockName"], scheduled[y]["startTime"], scheduled[y]["match"]["id"]))
                 except:
                     f = open("errorfile.txt", "w")
                     f.write("JSON = " + str(scheduled) +
