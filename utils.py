@@ -318,6 +318,13 @@ async def region_to_valid_region(region: str):
     return switcher.get(region, "Invalid Region")
 
 
+async def get_start_time(time):
+    starttime = re.sub("[T]", " ", time)
+    starttime = re.sub("[Z]", "", starttime)
+    starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S")
+    return starttime
+
+
 async def embedgen(ctx, **args):
     discord_embed = {
         "title": "Test",

@@ -1,13 +1,9 @@
 import discord
 import aiohttp
 import asyncio
-import os
 import utils
+import apirequests
 from discord.ext import commands
-from dotenv import load_dotenv
-
-load_dotenv()
-leagueapikey = os.getenv("LEAGUE_API_KEY")
 
 
 class League(commands.Cog):
@@ -31,87 +27,49 @@ class League(commands.Cog):
             await ctx.send("You did not specify a region")
             return
         embed = discord.Embed(title=name + "'s Ranks in " + region, color=0xA9152B)
-        region = region.upper()
-        region = await utils.region_to_valid_region(region)
+        region = await utils.region_to_valid_region(region.upper())
         if region == "Invalid Region":
             await ctx.send("The server you entered is invalid, or it's a Garena server")
         else:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    "https://"
-                    + region
-                    + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
-                    + name
-                    + "?api_key="
-                    + leagueapikey
-                ) as response:
-                    if response.status != 200:
-                        await ctx.send(
-                            "Riot API returned a bad request. Check for errors in your request, or tell Leo to reset his API key."
-                        )
-                        return
-                    summoneridrequest = await response.json()
-                    summonerid = summoneridrequest["id"]
-                async with session.get(
-                    "https://"
-                    + region
-                    + ".api.riotgames.com/lol/league/v4/entries/by-summoner/"
-                    + summonerid
-                    + "?api_key="
-                    + leagueapikey
-                ) as response:
-                    rankedrequest = await response.json()
-                # async with session.get("https://" + region + ".api.riotgames.com/tft/league/v1/entries/by-summoner/" + summonerid + "?api_key=" + apikey) as response:
-                # tftrequest = await response.json()
-                await session.close()
-                if rankedrequest != []:
-                    for x in range(len(rankedrequest)):
-                        if rankedrequest[x]["queueType"] == "RANKED_SOLO_5x5":
-                            message = ""
-                            message += (
-                                rankedrequest[x]["tier"]
-                                + " "
-                                + rankedrequest[x]["rank"]
-                                + " "
-                                + str(rankedrequest[x]["leaguePoints"])
-                                + "LP "
-                            )
-                            if "miniSeries" in rankedrequest[x]:
-                                message += "| Promo: "
-                                for y in range(len(rankedrequest[x]["miniSeries"]["progress"])):
-                                    if rankedrequest[x]["miniSeries"]["progress"][y] == "W":
-                                        message += ":white_check_mark:"
-                                    elif rankedrequest[x]["miniSeries"]["progress"][y] == "N":
-                                        message += ":grey_question:"
-                                    elif rankedrequest[x]["miniSeries"]["progress"][y] == "L":
-                                        message += ":x:"
-                            embed.add_field(name="Solo", value=message, inline=False)
-                        elif rankedrequest[x]["queueType"] == "RANKED_FLEX_SR":
-                            message = (
-                                rankedrequest[x]["tier"]
-                                + " "
-                                + rankedrequest[x]["rank"]
-                                + " "
-                                + str(rankedrequest[x]["leaguePoints"])
-                                + "LP "
-                            )
-                            if "miniSeries" in rankedrequest[x]:
-                                message += "| Promo: "
-                                for y in range(len(rankedrequest[x]["miniSeries"]["progress"])):
-                                    if rankedrequest[x]["miniSeries"]["progress"][y] == "W":
-                                        message += ":white_check_mark:"
-                                    elif rankedrequest[x]["miniSeries"]["progress"][y] == "N":
-                                        message += ":grey_question:"
-                                    elif rankedrequest[x]["miniSeries"]["progress"][y] == "L":
-                                        message += ":x:"
-                            embed.add_field(name="Flex", value=message, inline=False)
-                        else:
-                            continue
-                # if tftrequest != []:
-                # embed.add_field(name="TFT", value=tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP",inline=True)
-                if rankedrequest == []:  # and tftrequest == []:
-                    embed.add_field(name="Unranked", value=name + " is unranked in all queues")
+            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
+            summonerid = summoneridrequest["id"]
+            rankedrequest = await apirequests.league(ctx, region, "league", "entries/by-summoner/", summonerid)
+            # tftrequest = await apirequests.league(ctx, region, "league", "entries/by-summoner", summonerid)
+            if rankedrequest == []:  # and tftrequest == []:
+                embed.add_field(name="Unranked", value=name + " is unranked in all queues")
+                await ctx.send(embed=embed)
+                return
+            if rankedrequest != []:
+                for x in range(len(rankedrequest)):
+                    tier_rank_lp = (
+                        rankedrequest[x]["tier"]
+                        + " "
+                        + rankedrequest[x]["rank"]
+                        + " "
+                        + str(rankedrequest[x]["leaguePoints"])
+                        + "LP "
+                    )
+                    message = tier_rank_lp
+                    if "miniSeries" in rankedrequest[x]:
+                        message += "| Promo: "
+                        for y in range(len(rankedrequest[x]["miniSeries"]["progress"])):
+                            promo_game = rankedrequest[x]["miniSeries"]["progress"][y]
+                            if promo_game == "W":
+                                message += ":white_check_mark:"
+                            elif promo_game == "N":
+                                message += ":grey_question:"
+                            elif promo_game == "L":
+                                message += ":x:"
+                    if rankedrequest[x]["queueType"] == "RANKED_SOLO_5x5":
+                        embed.add_field(name="Solo", value=message, inline=False)
+                    elif rankedrequest[x]["queueType"] == "RANKED_FLEX_SR":
+                        embed.add_field(name="Flex", value=message, inline=False)
+                    else:
+                        continue
+            # if tftrequest != []:
+            # embed.add_field(name="TFT", value=tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP",inline=True)
             await ctx.send(embed=embed)
+            return
 
     @league.command(pass_context=True, aliases=["Profile"])
     async def profile(self, ctx, name=None, region=None):
@@ -126,44 +84,23 @@ class League(commands.Cog):
         if region == None:
             await ctx.send("You did not specify a region")
             return
-        region = region.upper()
-        embed = discord.Embed(title=name + "'s Profile on " + region, color=0xA9152B)
-        region = await utils.region_to_valid_region(region)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://"
-                + region
-                + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
-                + name
-                + "?api_key="
-                + leagueapikey
-            ) as response:
-                if response.status != 200:
-                    await ctx.send("Riot API returned a " + response.status)
-                summoneridrequest = await response.json()
-                profileicon = summoneridrequest["profileIconId"]
-                # accountid = summoneridrequest['accountId']
-                # summonerlevel = summoneridrequest['summonerLevel']
-                summonerid = summoneridrequest["id"]
-                embed.set_thumbnail(
-                    url="http://ddragon.leagueoflegends.com/cdn/10.3.1/img/profileicon/" + str(profileicon) + ".png"
-                )
-            async with session.get(
-                "https://"
-                + region
-                + ".api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/"
-                + summonerid
-                + "?api_key="
-                + leagueapikey
-            ) as response:
-                if response.status != 200:
-                    await ctx.send("Riot API returned a" + str(response.status))
-                masteries = await response.json()
-                for x in range(3):
-                    champions = await utils.championid_to_champion(str(masteries[x]["championId"]))
-                    masterypoints = str(masteries[x]["championPoints"])
-                    mastery_message += champions + " | " + masterypoints + "\n"
-            await session.close()
+        embed = discord.Embed(title=name + "'s Profile on " + region.upper(), color=0xA9152B)
+        region = await utils.region_to_valid_region(region.upper())
+        summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
+        profileicon = summoneridrequest["profileIconId"]
+        # accountid = summoneridrequest['accountId']
+        # summonerlevel = summoneridrequest['summonerLevel']
+        summonerid = summoneridrequest["id"]
+        embed.set_thumbnail(
+            url="http://ddragon.leagueoflegends.com/cdn/10.3.1/img/profileicon/" + str(profileicon) + ".png"
+        )
+        masteries = await apirequests.league(
+            ctx, region, "champion-mastery", "champion-masteries/by-summoner/", summonerid
+        )
+        for x in range(3):
+            champions = await utils.championid_to_champion(str(masteries[x]["championId"]))
+            masterypoints = str(masteries[x]["championPoints"])
+            mastery_message += champions + " | " + masterypoints + "\n"
         embed.add_field(name="Top 3 Masteries", value=mastery_message, inline=False)
         await ctx.send(embed=embed)
         return
