@@ -2,14 +2,20 @@
 
 import logging
 
-logging.basicConfig(filename="logging.log", level=logging.INFO)
+logging.basicConfig(
+    filename="logging.log",
+    level=logging.INFO,
+    format="%(asctime)s;%(levelname)s;%(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
 
 import os
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
-logger = logging.getLogger("AmazingBot.main")
+logger = logging.getLogger("AmazingBot")
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
