@@ -1,11 +1,8 @@
-from dotenv import load_dotenv
 from discord.ext import commands
 import utils
 import database as db
 import discord
-import aiohttp
 import asyncio
-import os
 import sqlite3
 import sys
 import importlib
@@ -13,9 +10,6 @@ import schedule
 import time
 
 sys.path.append("../database")
-
-load_dotenv()
-leagueapikey = os.getenv("LEAGUE_API_KEY")
 
 
 class Predictions(commands.Cog):
