@@ -4,7 +4,9 @@ import asyncio
 import utils
 import apirequests
 from discord.ext import commands
+import logging
 
+logger = logging.getLogger("AmazingBot." + __name__)
 
 class League(commands.Cog):
     def __init__(self, bot):
@@ -12,6 +14,7 @@ class League(commands.Cog):
 
     @commands.group(pass_context=True, aliases=["League"])
     async def league(self, ctx):
+        logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are rank and profile")
         return

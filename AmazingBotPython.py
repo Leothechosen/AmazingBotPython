@@ -1,5 +1,9 @@
 # AmazingBotPython.py
 
+import logging
+
+logging.basicConfig(filename="logging.log", level=logging.INFO)
+
 import os
 import discord
 from dotenv import load_dotenv

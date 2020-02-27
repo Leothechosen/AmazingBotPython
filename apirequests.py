@@ -5,6 +5,9 @@ import aiohttp
 import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger("AmazingBot." + __name__)
 
 load_dotenv()
 leagueapikey = os.getenv("LEAGUE_API_KEY")
@@ -22,6 +25,16 @@ async def esports(ctx, endpoint, param, paramId):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + response.status + " error.")
+                logging.warning(
+                    " eSports API returned a "
+                    + response.status
+                    + " response code. Endpoint: "
+                    + endpoint
+                    + " | Parameter_Name: "
+                    + param
+                    + " | Parameter_Value: "
+                    + paramId
+                )
                 return
             response = await response.json()
             await session.close()
@@ -36,6 +49,18 @@ async def league(ctx, region, endpoint, param, paramId):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + response.status + " error.")
+                logging.warning(
+                    "Riot API returned a "
+                    + response.status
+                    + " response code. Region: "
+                    + region
+                    + " | Endpoint: "
+                    + endpoint
+                    + " | Parameter_Name: "
+                    + param
+                    + " | Parameter_Value: "
+                    + paramId
+                )
                 return
             response = await response.json()
             await session.close()
@@ -50,6 +75,18 @@ async def tft(ctx, region, endpoint, param, paramId):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + response.status + " error.")
+                logging.warning(
+                    "Riot API returned a "
+                    + response.status
+                    + " response code. Region: "
+                    + region
+                    + " | Endpoint: "
+                    + endpoint
+                    + " | Parameter_Name: "
+                    + param
+                    + " | Parameter_Value: "
+                    + paramId
+                )
                 return
             response = await response.json()
             await session.close()
@@ -64,6 +101,18 @@ async def lor(ctx, region, endpoint, param, paramId):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + response.status + " error.")
+                logging.warning(
+                    "Riot API returned a "
+                    + response.status
+                    + " response code. Region: "
+                    + region
+                    + " | Endpoint: "
+                    + endpoint
+                    + " | Parameter_Name: "
+                    + param
+                    + " | Parameter_Value: "
+                    + paramId
+                )
                 return
             response = await response.json()
             await session.close()

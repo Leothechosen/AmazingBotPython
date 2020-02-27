@@ -8,7 +8,9 @@ import sys
 import importlib
 import schedule
 import time
+import logging
 
+logger = logging.getLogger("AmazingBot." + __name__)
 sys.path.append("../database")
 
 
@@ -33,6 +35,7 @@ class Predictions(commands.Cog):
 
     @commands.group(pass_context=True, aliases=["Prediction"])
     async def prediction(self, ctx):
+        logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
         await db.checkdiscord(ctx)
         if self.updating == False:
             self.updating = True
@@ -55,7 +58,7 @@ class Predictions(commands.Cog):
         embed = discord.Embed(title="Predictions: League", color=0xA9152B)
         embed.add_field(name="Which League would you like to predict?", value=leagues_message, inline=False)
         msg = await ctx.send(embed=embed)
-        react = await reaction_check(self, msg, original_user, reaction_list, embed)
+        react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         if league == "LPL":
             embed.set_field_at(
@@ -73,7 +76,7 @@ class Predictions(commands.Cog):
             embed.title = "Predictions: " + league + " " + block_name + " - " + team_1 + " vs " + team_2
             embed.set_field_at(0, name="Which team do you predict will win?", value="1: " + team_1 + "\n2: " + team_2)
             await discord.Message.edit(msg, embed=embed)
-            react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
+            react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
             if reaction_list.index(react[0].emoji) == 0:
                 await db.writePredictions(team_1, matches[x][0], original_user)
                 end_message += "**" + team_1 + "** vs " + team_2 + "\n"
@@ -109,7 +112,7 @@ class Predictions(commands.Cog):
             name="Which league would you like to view your predictions in?", value=leagues_message, inline=False
         )
         msg = await ctx.send(embed=embed)
-        react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
+        react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         # Get all blocks in a league that a user has made a prediction in. i.e Week 4, Week 5
         prediction_blocks = await db.fetchBlocksPredicted(original_user, league)
@@ -122,7 +125,7 @@ class Predictions(commands.Cog):
             0, name="Which block would you like to view your predictions in?", value=blocks_msg, inline=False
         )
         await discord.Message.edit(msg, embed=embed)
-        react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
+        react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
         block_name = prediction_blocks[reaction_list.index(react[0].emoji)][0]
         # Get a block of predictions in a league
         user_predictions = await db.fetchPredictions(original_user, league, block_name)
@@ -159,7 +162,7 @@ class Predictions(commands.Cog):
         embed.add_field(name="Which League would you like to view your record in?", value=leagues_message, inline=False)
         msg = await ctx.send(embed=embed)
         await discord.Message.add_reaction(msg, reaction_list[0])
-        react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
+        react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         block_name_msg, correct_pred_msg, wrong_pred_msg = await db.fetchCorrect(league, original_user)
         embed.title = "Prediction Record - " + league
@@ -187,7 +190,7 @@ class Predictions(commands.Cog):
             name="Which League would you like to view the leaderboard in?", value=leagues_message, inline=False
         )
         msg = await ctx.send(embed=embed)
-        react = await reaction_check(self, msg, original_user, reaction_list, embed)
+        react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         leaderboard_users, leaderboard_records = await db.fetchLeaderboard(league)
         for x in range(len(leaderboard_users)):
@@ -221,7 +224,7 @@ class Predictions(commands.Cog):
         return
 
 
-async def reaction_check(self, msg, original_user, allowed_reactions, embed):
+async def reaction_check(self, ctx, msg, original_user, allowed_reactions, embed):
     for x in range(len(allowed_reactions)):
         await discord.Message.add_reaction(msg, allowed_reactions[x])
 

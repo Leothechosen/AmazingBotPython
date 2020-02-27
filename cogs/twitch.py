@@ -6,6 +6,9 @@ import random
 import apirequests
 from discord.ext import commands
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger("AmazingBot." + __name__)
 
 load_dotenv()
 twitchtoken = os.getenv("TWITCH_API_KEY")
@@ -37,7 +40,7 @@ async def amazingLive(self):
         # If not live while code thinks stream is live
         if twitchrequest["stream"] == None and streamlive == True:
             streamlive = False
-            print("Amazing has gone offline")
+            logger.info("Amazing has gone offline")
             continue
         # If live while code thinks stream isn't live
         elif twitchrequest["stream"] != None and streamlive == False:
@@ -45,7 +48,7 @@ async def amazingLive(self):
                 "@everyone " + random.choice(announcements) + " https://www.twitch.tv/amazingx"
             )
             streamlive = True
-            print("Amazing has gone online")
+            logger.info("Amazing has gone online")
             continue
         await asyncio.sleep(60)
 

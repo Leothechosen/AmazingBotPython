@@ -7,7 +7,9 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 from dotenv import load_dotenv
 import subprocess
+import logging
 
+logger = logging.getLogger("AmazingBot." + __name__)
 load_dotenv()
 amazingserverid = int(os.getenv("AMAZING_SERVER_ID"))
 servertimechannel = int(os.getenv("SERVER_TIME_CHANNEL"))

@@ -1,16 +1,19 @@
 import aiohttp
 import asyncio
 import sqlite3
+import logging
+
+logger = logging.getLogger("AmazingBot." + __name__)
 
 
 async def checkDB():
     try:
         dbfile = open("Predictions.db")
-        print("Database accessed")
+        logger.info("Database Accessed")
         dbfile.close()
         return
     except IOError:
-        print("Database not accessible")
+        logger.info("Database not accessible")
         await createdb()
         return
 
