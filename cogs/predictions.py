@@ -55,26 +55,13 @@ class Predictions(commands.Cog):
         end_message = ""
         original_user = ctx.author.id
         reaction_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
-        allowed_reactions = []
         leagues_list = ["LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
         for x in range(len(reaction_list)):
             leagues_message += str(x + 1) + ": " + leagues_list[x] + "\n"
         embed = discord.Embed(title="Predictions: League", color=0xA9152B)
         embed.add_field(name="Which League would you like to predict?", value=leagues_message, inline=False)
         msg = await ctx.send(embed=embed)
-
-        def check(reaction, user):
-            return user.id == original_user and reaction.emoji in allowed_reactions and reaction.message.id == msg.id
-
-        for x in range(len(reaction_list)):
-            await discord.Message.add_reaction(msg, reaction_list[x])
-            allowed_reactions.append(reaction_list[x])
-        try:
-            react = await self.bot.wait_for(event="reaction_add", timeout=60.0, check=check)
-        except asyncio.TimeoutError:
-            embed.set_field_at(0, name="Timeout", value="Predictions have timed out. Please try again", inline=False)
-            await discord.Message.edit(msg, embed=embed)
-            await discord.Message.clear_reactions(msg)
+        react = await reaction_check(self, msg, original_user, reaction_list, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         if league == "LPL":
             embed.set_field_at(
@@ -84,7 +71,6 @@ class Predictions(commands.Cog):
                 inline=False,
             )
             await discord.Message.edit(msg, embed=embed)
-            await discord.Message.clear_reactions(msg)
             return
         block_name, matches = await db.get_next_block_and_matches(league)
         allowed_reactions = ["1️⃣", "2️⃣"]
@@ -93,18 +79,7 @@ class Predictions(commands.Cog):
             embed.title = "Predictions: " + league + " " + block_name + " - " + team_1 + " vs " + team_2
             embed.set_field_at(0, name="Which team do you predict will win?", value="1: " + team_1 + "\n2: " + team_2)
             await discord.Message.edit(msg, embed=embed)
-            await discord.Message.clear_reactions(msg)
-            await discord.Message.add_reaction(msg, reaction_list[0])
-            await discord.Message.add_reaction(msg, reaction_list[1])
-            try:
-                react = await self.bot.wait_for(event="reaction_add", timeout=60.0, check=check)
-            except asyncio.TimeoutError:
-                embed.set_field_at(
-                    0, name="Timeout", value="Predictions have timed out. Please try again", inline=False
-                )
-                await discord.Message.edit(msg, embed=embed)
-                await discord.Message.clear_reactions(msg)
-                return
+            react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
             if reaction_list.index(react[0].emoji) == 0:
                 await db.writePredictions(team_1, matches[x][0], original_user)
                 end_message += "**" + team_1 + "** vs " + team_2 + "\n"
@@ -134,46 +109,26 @@ class Predictions(commands.Cog):
             return
         for x in range(len(leagues_predicted)):
             leagues_message += str(x + 1) + ": " + leagues_list[leagues_predicted[x][0] - 1] + "\n"
+            allowed_reactions.append(reaction_list[x])
         embed = discord.Embed(title="View predictions", color=0xA9152B)
         embed.add_field(
             name="Which league would you like to view your predictions in?", value=leagues_message, inline=False
         )
         msg = await ctx.send(embed=embed)
-        for x in range(len(leagues_predicted)):
-            await discord.Message.add_reaction(msg, reaction_list[x])
-            allowed_reactions.append(reaction_list[x])
-
-        def check(reaction, user):
-            return user.id == original_user and reaction.emoji in allowed_reactions and reaction.message.id == msg.id
-
-        try:
-            react = await self.bot.wait_for(event="reaction_add", timeout=60.0, check=check)
-        except asyncio.TimeoutError:
-            embed.set_field_at(0, name="Timeout", value="Predictions have timed out. Please try again", inline=False)
-            await discord.Message.edit(msg, embed=embed)
-            await discord.Message.clear_reactions(msg)
-        await discord.Message.clear_reactions(msg)
+        react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         # Get all blocks in a league that a user has made a prediction in. i.e Week 4, Week 5
         prediction_blocks = await db.fetchBlocksPredicted(original_user, league)
         allowed_reactions = []
         for x in range(len(prediction_blocks)):
             blocks_msg += str(x + 1) + ": " + prediction_blocks[x][0] + "\n"
+            allowed_reactions.append(reaction_list[x])
         embed.title = league.upper() + " - Block Selection"
         embed.set_field_at(
             0, name="Which block would you like to view your predictions in?", value=blocks_msg, inline=False
         )
         await discord.Message.edit(msg, embed=embed)
-        for x in range(len(prediction_blocks)):
-            await discord.Message.add_reaction(msg, reaction_list[x])
-            allowed_reactions.append(reaction_list[x])
-        try:
-            react = await self.bot.wait_for(event="reaction_add", timeout=60.0, check=check)
-        except asyncio.TimeoutError:
-            embed.set_field_at(0, name="Timeout", value="Predictions have timed out. Please try again", inline=False)
-            await discord.Message.edit(msg, embed=embed)
-            await discord.Message.clear_reactions(msg)
-        await discord.Message.clear_reactions(msg)
+        react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
         block_name = prediction_blocks[reaction_list.index(react[0].emoji)][0]
         # Get a block of predictions in a league
         user_predictions = await db.fetchPredictions(original_user, league, block_name)
@@ -205,23 +160,12 @@ class Predictions(commands.Cog):
             return
         for x in range(len(leagues_predicted)):
             leagues_message += str(x + 1) + ": " + leagues_list[leagues_predicted[x][0]] + "\n"
+            allowed_reactions.append(reaction_list[x + 1])
         embed = discord.Embed(title="View predictions", color=0xA9152B)
         embed.add_field(name="Which League would you like to view your record in?", value=leagues_message, inline=False)
         msg = await ctx.send(embed=embed)
         await discord.Message.add_reaction(msg, reaction_list[0])
-        for x in range(len(leagues_predicted)):
-            await discord.Message.add_reaction(msg, reaction_list[x + 1])
-            allowed_reactions.append(reaction_list[x + 1])
-
-        def check(reaction, user):
-            return user.id == original_user and reaction.emoji in allowed_reactions and reaction.message.id == msg.id
-
-        try:
-            react = await self.bot.wait_for(event="reaction_add", timeout=60.0, check=check)
-        except asyncio.TimeoutError:
-            embed.set_field_at(0, name="Timeout", value="Predictions have timed out. Please try again", inline=False)
-            await discord.Message.edit(msg, embed=embed)
-            await discord.Message.clear_reactions(msg)
+        react = await reaction_check(self, msg, original_user, allowed_reactions, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         block_name_msg, correct_pred_msg, wrong_pred_msg = await db.fetchCorrect(league, original_user)
         embed.title = "Prediction Record - " + league
@@ -249,18 +193,7 @@ class Predictions(commands.Cog):
             name="Which League would you like to view the leaderboard in?", value=leagues_message, inline=False
         )
         msg = await ctx.send(embed=embed)
-        for x in range(len(reaction_list)):
-            await discord.Message.add_reaction(msg, reaction_list[x])
-
-        def check(reaction, user):
-            return user.id == original_user and reaction.emoji in reaction_list and reaction.message.id == msg.id
-
-        try:
-            react = await self.bot.wait_for(event="reaction_add", timeout=60.0, check=check)
-        except asyncio.TimeoutError:
-            embed.set_field_at(0, name="Timeout", value="Predictions have timed out. Please try again", inline=False)
-            await discord.Message.edit(msg, embed=embed)
-            await discord.Message.clear_reactions(msg)
+        react = await reaction_check(self, msg, original_user, reaction_list, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
         leaderboard_users, leaderboard_records = await db.fetchLeaderboard(league)
         for x in range(len(leaderboard_users)):
@@ -292,6 +225,24 @@ class Predictions(commands.Cog):
         except:
             await ctx.send("There was an error")
         return
+
+
+async def reaction_check(self, msg, original_user, allowed_reactions, embed):
+    for x in range(len(allowed_reactions)):
+        await discord.Message.add_reaction(msg, allowed_reactions[x])
+
+    def check(reaction, user):
+        return user.id == original_user and reaction.emoji in allowed_reactions and reaction.message.id == msg.id
+
+    try:
+        react = await self.bot.wait_for(event="reaction_add", timeout=60.0, check=check)
+    except asyncio.TimeoutError:
+        embed.set_field_at(0, name="Timeout", value="Predictions have timed out. Please try again", inline=False)
+        await discord.Message.edit(msg, embed=embed)
+        await discord.Message.clear_reactions(msg)
+        return False
+    await discord.Message.clear_reactions(msg)
+    return react
 
 
 def setup(bot):
