@@ -10,10 +10,11 @@ load_dotenv()
 leagueapikey = os.getenv("LEAGUE_API_KEY")
 runeterraapikey = os.getenv("RUNETERRA_API_KEY")
 twitchapikey = os.getenv("TWITCH_API_KEY")
+esportsapikey = os.getenv("ESPORTS_API_KEY")
 
 
 async def esports(ctx, endpoint, param, paramId):
-    headers = {"x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"}
+    headers = {"x-api-key": esportsapikey}
     async with aiohttp.ClientSession() as session:
         async with session.get(
             "https://esports-api.lolesports.com/persisted/gw/" + endpoint + "?hl=en-US&" + param + "=" + paramId,
