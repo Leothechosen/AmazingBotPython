@@ -89,11 +89,11 @@ class Predictions(commands.Cog):
         block_name, matches = await db.get_next_block_and_matches(league)
         allowed_reactions = ["1️⃣", "2️⃣"]
         for x in range(len(matches)):
-            await discord.Message.clear_reactions(msg)
             team_1, team_2 = await db.fetchTeamIds(matches[x][1], matches[x][2])
             embed.title = "Predictions: " + league + " " + block_name + " - " + team_1 + " vs " + team_2
             embed.set_field_at(0, name="Which team do you predict will win?", value="1: " + team_1 + "\n2: " + team_2)
             await discord.Message.edit(msg, embed=embed)
+            await discord.Message.clear_reactions(msg)
             await discord.Message.add_reaction(msg, reaction_list[0])
             await discord.Message.add_reaction(msg, reaction_list[1])
             try:
