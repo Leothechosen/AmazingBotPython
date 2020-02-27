@@ -81,7 +81,14 @@ class Misc(commands.Cog):
         await ctx.send(embed=embed)
         return
 
+    @commands.command(name="playlist")
+    async def playlist(self, ctx):
+        await ctx.send(
+            "Maurice's stream playlist can be found here: https://open.spotify.com/playlist/3Ae9kHY7VgXTg6KwsbWVnn?si=gVNIAIuDSyWFb2ZULr-hZQ "
+        )
+
     @commands.command(name="embedtest")
+    @commands.is_owner()
     async def embedtest(self, ctx):
         discord_embed = await utils.embedgen(ctx)
         embed = discord.Embed.from_dict(discord_embed)
