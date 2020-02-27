@@ -15,7 +15,6 @@ class Lor(commands.Cog):
 
     @commands.group(pass_context=True)
     async def lor(self, ctx):
-        logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are leaderboard")
         return

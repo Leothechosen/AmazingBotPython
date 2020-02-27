@@ -15,7 +15,6 @@ class Modlist(commands.Cog):
     @commands.group(pass_context=True)
     @commands.has_role("Moderators")
     async def modlist(self, ctx):
-        logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
         if ctx.invoked_subcommand is None:
             modlist = open(modlist_file, "r")
             await ctx.send(modlist.read())

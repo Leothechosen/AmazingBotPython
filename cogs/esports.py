@@ -16,7 +16,6 @@ class eSports(commands.Cog):
 
     @commands.group(pass_context=True, help="Subcommands: standings and team")
     async def esports(self, ctx):
-        logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are standings, team and schedule. See pinned message for usage.")
         return

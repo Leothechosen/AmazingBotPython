@@ -8,6 +8,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import subprocess
 import logging
+import random
 
 logger = logging.getLogger("AmazingBot." + __name__)
 load_dotenv()
@@ -23,10 +24,6 @@ class Misc(commands.Cog):
     async def on_ready(self):
         print("AmazingBot connected to Discord")
         await theserverTime(self)
-
-    @commands.command(name="sourcecode", help="Links the source code to how I work!")
-    async def sourcecode(self, ctx):
-        await ctx.send("https://www.github.com/Leothechosen/AmazingBotPython")
 
     @commands.command(name="restartservertime")
     @commands.has_role("Moderators")
@@ -63,14 +60,6 @@ class Misc(commands.Cog):
                 "An error occurred. This is likely due to the fact that you have a non-numerical character in your request (excluding the trailing F/C)"
             )
 
-    @commands.command(name="gitpull")
-    @commands.is_owner()
-    async def gitpull(self, ctx):
-        try:
-            subprocess.call(["git", "pull"])
-        except:
-            await ctx.send("gitpull error")
-
     @commands.command(name="avatar")
     async def avatar(self, ctx):
         embed = discord.Embed(title="Avatar", color=0xA9152B)
@@ -95,6 +84,32 @@ class Misc(commands.Cog):
         discord_embed = await utils.embedgen(ctx)
         embed = discord.Embed.from_dict(discord_embed)
         await ctx.send(embed=embed)
+
+    @commands.command(name="8ball")
+    async def eight_ball(self, ctx):
+        responses = [
+            "As I see it, yes.",
+            "Ask again later.",
+            "Better not tell you now.",
+            "Cannot predict now.",
+            "Concentrate and ask again.",
+            "Don't count on it.",
+            "It is certain.",
+            "It is decidedly so.",
+            "Most likely",
+            "My reply is no.",
+            "My sources say no.",
+            "Outlook not so good.",
+            "Outlook good.",
+            "Reply hazy, try again.",
+            "Signs point to yes.",
+            "Very doubtful",
+            "Without a doubt.",
+            "Yes.",
+            "Yes- definitely",
+            "You may rely on it",
+        ]
+        await ctx.send(responses[random.randint(0, len(responses))])
 
 
 async def theserverTime(self):

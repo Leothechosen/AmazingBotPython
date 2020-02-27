@@ -13,7 +13,6 @@ class Poll(commands.Cog):
 
     @commands.command(name="poll")
     async def poll(self, ctx, *, arguments=None):
-        logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
         if arguments == None:
             await ctx.send(
                 "Usage: `-poll [Question], [Answer1], [Answer2], ..., [Answer9], [Time in Seconds (Max: 300)]`"

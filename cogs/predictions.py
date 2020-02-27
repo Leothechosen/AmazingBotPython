@@ -35,7 +35,6 @@ class Predictions(commands.Cog):
 
     @commands.group(pass_context=True, aliases=["Prediction"])
     async def prediction(self, ctx):
-        logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
         await db.checkdiscord(ctx)
         if self.updating == False:
             self.updating = True
