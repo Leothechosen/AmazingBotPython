@@ -3,6 +3,7 @@ import aiohttp
 import asyncio
 import os
 import random
+import apirequests
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -32,13 +33,7 @@ async def amazingLive(self):
     streamlive = True  # Assume the stream is live
     announcementchannel = self.bot.get_channel(id=announcementchannel)
     while True:
-        async with aiohttp.ClientSession() as session:
-            headers = {"Accept": "application//vnd.twitchtv.v5+json", "Client-ID": twitchtoken}
-            async with session.get(
-                "https://api.twitch.tv/kraken/streams/" + amazing + "?api_verson=5", headers=headers
-            ) as response:
-                twitchrequest = await response.json()
-            await session.close()
+        twitchrequest = await apirequests.twitch(amazing)
         # If not live while code thinks stream is live
         if twitchrequest["stream"] == None and streamlive == True:
             streamlive = False

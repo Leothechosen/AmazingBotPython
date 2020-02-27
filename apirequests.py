@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 leagueapikey = os.getenv("LEAGUE_API_KEY")
 runeterraapikey = os.getenv("RUNETERRA_API_KEY")
+twitchapikey = os.getenv("TWITCH_API_KEY")
 
 
 async def esports(ctx, endpoint, param, paramId):
@@ -66,3 +67,14 @@ async def lor(ctx, region, endpoint, param, paramId):
             response = await response.json()
             await session.close()
     return response
+
+
+async def twitch(user):
+    headers = {"Accept": "application//vnd.twitchtv.v5+json", "Client-ID": twitchapikey}
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            "https://api.twitch.tv/kraken/streams/" + user + "?api_verson=5", headers=headers
+        ) as response:
+            twitchrequest = await response.json()
+        await session.close()
+    return twitchrequest
