@@ -6,6 +6,7 @@ from pytz import timezone
 from datetime import datetime, timedelta
 from discord.ext import commands
 from dotenv import load_dotenv
+import apirequests
 import subprocess
 import logging
 import random
@@ -110,6 +111,24 @@ class Misc(commands.Cog):
             "You may rely on it",
         ]
         await ctx.send(responses[random.randint(0, len(responses))])
+
+    @commands.command(name="sourcecode")
+    async def sourcecode(self, ctx):
+        try:
+            githubrequest = await apirequests.github()
+            last_commit_time = str(
+                datetime.strptime(githubrequest[0]["commit"]["author"]["date"], "%Y-%m-%dT%H:%M:%SZ")
+            )
+            last_commit_msg = githubrequest[0]["commit"]["message"]
+            embed = discord.Embed(title="AmazingBot Source Code", color=0xA9152B)
+            embed.add_field(name="Link", value="https://github.com/Leothechosen/AmazingBotPython", inline=False)
+            embed.add_field(name="Last commit - " + last_commit_time + " UTC", value=last_commit_msg, inline=False)
+            embed.set_footer(icon_url="https://i.imgur.com/TwEsQ4D.png", text="Created on 2020-01-06 at 05:55:11 UTC")
+            await ctx.send(embed=embed)
+            return
+        except Exception as e:
+            logging.error(e)
+            return
 
 
 async def theserverTime(self):

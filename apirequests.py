@@ -14,6 +14,7 @@ leagueapikey = os.getenv("LEAGUE_API_KEY")
 runeterraapikey = os.getenv("RUNETERRA_API_KEY")
 twitchapikey = os.getenv("TWITCH_API_KEY")
 esportsapikey = os.getenv("ESPORTS_API_KEY")
+githubapikey = os.getenv("GITHUB_API_KEY")
 
 
 async def esports(ctx, endpoint, param, paramId):
@@ -128,3 +129,19 @@ async def twitch(user):
             twitchrequest = await response.json()
         await session.close()
     return twitchrequest
+
+
+async def github():
+    logging.info("Entered github function")
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "Leothechosen",
+        "Authorization": "token" + githubapikey,
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://api.github.com/repos/Leothechosen/AmazingBotPython/commits", headers=headers) as response:
+            githubrequest = await response.json()
+            if response.status != 200:
+                logger.info("github returned a " + response.status)
+            await session.close()
+    return githubrequest
