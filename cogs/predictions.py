@@ -93,6 +93,7 @@ class Predictions(commands.Cog):
         original_user = ctx.author.id
         leagues_message = ""
         leagues_list = ["LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
+        predicted_leagues_names = []
         reaction_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
         allowed_reactions = []
         blocks_msg = ""
@@ -105,6 +106,7 @@ class Predictions(commands.Cog):
             return
         for x in range(len(leagues_predicted)):
             leagues_message += str(x + 1) + ": " + leagues_list[leagues_predicted[x][0] - 1] + "\n"
+            predicted_leagues_names.append(leagues_list[leagues_predicted[x][0] - 1])
             allowed_reactions.append(reaction_list[x])
         embed = discord.Embed(title="View predictions", color=0xA9152B)
         embed.add_field(
@@ -112,7 +114,7 @@ class Predictions(commands.Cog):
         )
         msg = await ctx.send(embed=embed)
         react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
-        league = leagues_list[reaction_list.index(react[0].emoji)]
+        league = predicted_leagues_names[reaction_list.index(react[0].emoji)]
         # Get all blocks in a league that a user has made a prediction in. i.e Week 4, Week 5
         prediction_blocks = await db.fetchBlocksPredicted(original_user, league)
         allowed_reactions = []
