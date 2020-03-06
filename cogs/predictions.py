@@ -6,7 +6,6 @@ import asyncio
 import sqlite3
 import sys
 import importlib
-import schedule
 import time
 import logging
 
@@ -19,13 +18,6 @@ class Predictions(commands.Cog):
         self.bot = bot
         self.bot.loop.create_task(db.checkDB())
         self.updating = False
-
-    # @commands.Cog.listener()
-    # async def on_ready(self):
-    # schedule.every().hour.do(autoupdatematches)
-    # while True:
-    # schedule.run_pending()
-    # time.sleep(3600)
 
     @commands.command(name="refreshcache")
     @commands.is_owner()
