@@ -22,6 +22,11 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 bot = commands.Bot(command_prefix="-")
 announcementchannel = None
 
+@bot.event
+async def on_connect():
+    game = discord.Game("Created By Leo")
+    await bot.change_presence(activity=game)
+
 
 @bot.event
 async def on_command(ctx):
