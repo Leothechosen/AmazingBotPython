@@ -194,7 +194,10 @@ class Predictions(commands.Cog):
                     rank_msg_array.append(rank_msg_array[-1])
                 else:
                     rank_msg_array.append(str(x + 1))
-            users_msg += ctx.guild.get_member(leaderboard_users[x]).display_name + "\n"
+            if ctx.guild.get_member(leaderboard_users[x]) is None:
+                users_msg += 'User has left the server\n'
+            else:
+                users_msg += ctx.guild.get_member(leaderboard_users[x]).display_name + "\n"
             record_msg += leaderboard_records[x] + "\n"
         for x in range(len(rank_msg_array)):
             rank_msg += await utils.integerPrefix(rank_msg_array[x]) + "\n"
