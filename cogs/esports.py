@@ -67,9 +67,9 @@ class eSports(commands.Cog):
             )
             return
         leaguename = await utils.sanitizeinput(league)
-        if leaguename == "LPL":
+        if leaguename == "LCK":
             await ctx.send(
-                "Unfortunately, LPL is on hiatus due to the Coronavirus. This means that there is no schedule for the time being."
+                "Unfortunately, LCK is on hiatus due to the Coronavirus. This means that there is no schedule for the time being."
             )
             return
         leagueid = await utils.getLeagueId(league)
