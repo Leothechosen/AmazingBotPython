@@ -129,7 +129,51 @@ class Misc(commands.Cog):
         except Exception as e:
             logging.error(e)
             return
+    
+    @commands.group(pass_context=True)
+    async def fah(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send("Subcommands are team and user. See pinned message for usage.")
+        return
+    
+    @fah.command(pass_context=True)
+    async def team(self, ctx, team=None):
+        if team is None:
+            await ctx.send("Usage: `-fah team [team_id]`. Amazingx Community's team id is 242203")
+            return
+        teamresponse = await apirequests.foldingathome(ctx, "team", team)
+        user_message = ""
+        credit_message = ""
+        rank_message = ""
+        for x in range(len(teamresponse["donors"])):
+            user_message += teamresponse["donors"][x]["name"] + '\n'
+            credit_message += str(teamresponse["donors"][x]["credit"]) + '\n'
+            if "rank" in teamresponse["donors"][x]:
+                rank_message += str(teamresponse["donors"][x]["rank"]) + '\n'
+            else:
+                rank_message += "N/A" + '\n'
+        embed = discord.Embed(title="F@H " + teamresponse["name"], color=0xA9152B)
+        embed.add_field(name="User", value=user_message, inline=True)
+        embed.add_field(name="Credits", value=credit_message, inline=True)
+        embed.add_field(name="Rank", value=rank_message, inline=True)
+        await ctx.send(embed=embed)
+        return
+    
+    @fah.command(pass_context=True)
+    async def user(self, ctx, user=None):
+        if user is None:
+            await ctx.send("Usage: `-fah user [user_name]")
+            return
+        userresponse = await apirequests.foldingathome(ctx, "donor", user)
+        stats_name_message = "Work Units" + '\n' + "Rank" + '\n' + "Date of Last WU" + '\n' + "Credits"
+        stats_message = str(userresponse["wus"]) + '\n' + str(userresponse["rank"]) + '\n' + str(userresponse["last"]) + '\n' + str(userresponse["credit"])
+        embed = discord.Embed(title="F@H " + userresponse["name"], color=0xA9152B)
+        embed.add_field(name="Stats", value=stats_name_message, inline=True)
+        embed.add_field(name="Value", value=stats_message, inline=True)
+        await ctx.send(embed=embed)
+        return
 
+        
 
 async def theserverTime(self):
     minutecheck = datetime.now(timezone("CET"))

@@ -132,7 +132,6 @@ async def twitch(user):
 
 
 async def github():
-    logging.info("Entered github function")
     headers = {
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "Leothechosen",
@@ -145,3 +144,16 @@ async def github():
                 logger.info("github returned a " + response.status)
             await session.close()
     return githubrequest
+
+async def foldingathome(ctx, endpoint, user_or_team):
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://stats.foldingathome.org/api/" + endpoint + "/" + user_or_team) as response:
+            foldingathomerequest = await response.json()
+            if response.status != 200:
+                logger.info("Folding@Home returned a " + str(response.status))
+                await ctx.send("There was an error with the API request.")
+                return
+            await session.close()
+    return foldingathomerequest
+            
+    
