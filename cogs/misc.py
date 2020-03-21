@@ -156,13 +156,14 @@ class Misc(commands.Cog):
         embed.add_field(name="User", value=user_message, inline=True)
         embed.add_field(name="Credits", value=credit_message, inline=True)
         embed.add_field(name="Rank", value=rank_message, inline=True)
+        embed.set_footer(text="Folding@Home API updates once or twice a day.")
         await ctx.send(embed=embed)
         return
     
     @fah.command(pass_context=True)
     async def user(self, ctx, user=None):
         if user is None:
-            await ctx.send("Usage: `-fah user [user_name]")
+            await ctx.send("Usage: `-fah user [user_name]`")
             return
         userresponse = await apirequests.foldingathome(ctx, "donor", user)
         stats_name_message = "Work Units" + '\n' + "Rank" + '\n' + "Date of Last WU" + '\n' + "Credits"
@@ -170,6 +171,7 @@ class Misc(commands.Cog):
         embed = discord.Embed(title="F@H " + userresponse["name"], color=0xA9152B)
         embed.add_field(name="Stats", value=stats_name_message, inline=True)
         embed.add_field(name="Value", value=stats_message, inline=True)
+        embed.set_footer(text="Folding@Home API updates once or twice a day.")
         await ctx.send(embed=embed)
         return
 
