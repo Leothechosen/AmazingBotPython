@@ -17,10 +17,14 @@ Commands (Prefix is -) :
    - view
    - record
    - leaderboard
-5. poll [question], [answer1], [answer2], ..., [answer9], [time_in_seconds] (Max: 300 seconds)
-6. temp [temperatureF or temperatureC or temperatureK]
-7. avatar
-8. sourcecode
+5. fah 
+   - team [team_id]
+   - user [user_name or user_id]
+6. poll [question], [answer1], [answer2], ..., [answer9], [time_in_seconds] (Max: 300 seconds)
+7. temp [temperatureF or temperatureC or temperatureK]
+8. 8ball
+9. avatar
+10. sourcecode
 Planned future commands:
 - Expanding the rank command to include top champions played, recent games, and progress in ranking by storing the last rank that was called. For example, if I were to call my own rank (MZLeothechosen: Plat IV 0LP) and then later when I get to Plat III and call rank again, show Plat III (+1) 34LP (+34), but in a cleaner way. Legends of Runeterra's rank will also be added to this command, as soon as it becomes feasible to do so. 
 - If the Discord server becomes large enough and there's interest in it, generate a XvsX Tournament with community members.
