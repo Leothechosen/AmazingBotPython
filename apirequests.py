@@ -148,8 +148,12 @@ async def github():
 async def foldingathome(ctx, endpoint, user_or_team):
     async with aiohttp.ClientSession() as session:
         async with session.get("https://stats.foldingathome.org/api/" + endpoint + "/" + user_or_team) as response:
-            foldingathomerequest = await response.json()
-            if response.status != 200:
+            try:
+                foldingathomerequest = await response.json()
+            except:
+                await ctx.send("The Folding@Home API appears to be down right now. Sorry!")
+                return
+            if response.status != 200 or "error" in foldingathomerequest:
                 logger.info("Folding@Home returned a " + str(response.status))
                 await ctx.send("There was an error with the API request.")
                 return
