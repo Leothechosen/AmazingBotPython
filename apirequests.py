@@ -160,4 +160,45 @@ async def foldingathome(ctx, endpoint, user_or_team):
             await session.close()
     return foldingathomerequest
             
-    
+
+async def clash_user(ctx, region, summonerid):
+    headers = {"X-Riot-Token": leagueapikey}
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            "https://" + region + ".api.riotgames.com/lol/clash/v1/players/by-summoner/" + summonerid, headers=headers
+        ) as response:
+            if response.status != 200:
+                await ctx.send("Riot API returned a " + str(response.status) + " error.")
+                logging.warning(
+                    "Riot API returned a "
+                    + response.status
+                    + " response code. Region: "
+                    + region
+                    + " | Summoner_ID: "
+                    + str(summonerid)
+                )
+                return
+            response = await response.json()
+            await session.close()
+    return response
+
+async def clash_team(ctx, region, teamid):
+    headers = {"X-Riot-Token": leagueapikey}
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            "https://" + region + ".api.riotgames.com/lol/clash/v1/teams/" + teamid, headers=headers
+        ) as response:
+            if response.status != 200:
+                await ctx.send("Riot API returned a " + str(response.status) + " error.")
+                logging.warning(
+                    "Riot API returned a "
+                    + response.status
+                    + " response code. Region: "
+                    + region
+                    + " | Team_ID: "
+                    + str(teamid)
+                )
+                return
+            response = await response.json()
+            await session.close()
+    return response
