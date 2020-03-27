@@ -15,7 +15,7 @@ class League(commands.Cog):
     @commands.group(pass_context=True, aliases=["League"])
     async def league(self, ctx):
         if ctx.invoked_subcommand is None:
-            await ctx.send("Subcommands are rank and profile")
+            await ctx.send("Subcommands are rank, profile, and clash")
         return
 
     @league.command(pass_context=True, aliases=["Rank"])
@@ -107,6 +107,32 @@ class League(commands.Cog):
         await ctx.send(embed=embed)
         return
 
+    @league.command(pass_context=True, aliases=["Clash"])
+    async def clash(self, ctx, user_name=None, region=None):
+        if user_name == None:
+            await ctx.send("Usage: `-league clash [user_name]`")
+            return
+        if region == None:
+            await ctx.send("You did not specify a region")
+            return
+        region = await utils.region_to_valid_region(region.upper())
+        if region == "Invalid Region":
+            await ctx.send("The server you entered is invalid, or it's a Garena server")
+            return
+        summonerid = (await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name))['id']
+        team_id = (await apirequests.clash_user(ctx, region, summonerid))[0]['teamId']
+        clash_team_response = await apirequests.clash_team(ctx, region, team_id)
+        user_message = ""
+        role_message = ""
+        for x in range(len(clash_team_response['players'])):
+            player_name = (await apirequests.league(ctx, region, "summoner", "summoners/", clash_team_response['players'][x]['summonerId']))['name']
+            user_message += player_name + '\n'
+            role_message += clash_team_response['players'][x]['position'] + '\n'
+        embed = discord.Embed(title="Clash Team: " + clash_team_response['name'], color=0xA9152B)
+        embed.add_field(name="User", value=user_message, inline=True)
+        embed.add_field(name="Role", value=role_message, inline=True)
+        await ctx.send(embed=embed)
+        return
 
 def setup(bot):
     bot.add_cog(League(bot))
