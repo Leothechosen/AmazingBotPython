@@ -120,17 +120,21 @@ class League(commands.Cog):
             await ctx.send("The server you entered is invalid, or it's a Garena server")
             return
         summonerid = (await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name))['id']
-        team_id = (await apirequests.clash_user(ctx, region, summonerid))[0]['teamId']
-        clash_team_response = await apirequests.clash_team(ctx, region, team_id)
+        clash_user_response = await apirequests.clash_user(ctx, region, summonerid)
+        if clash_user_response == []:
+            await ctx.send(user_name + " is not in a Clash team at this time.")
+            return
+        clash_team_response = await apirequests.clash_team(ctx, region, clash_user_response[0]['teamId'])
         user_message = ""
         role_message = ""
         for x in range(len(clash_team_response['players'])):
             player_name = (await apirequests.league(ctx, region, "summoner", "summoners/", clash_team_response['players'][x]['summonerId']))['name']
             user_message += player_name + '\n'
             role_message += clash_team_response['players'][x]['position'] + '\n'
-        embed = discord.Embed(title="Clash Team: " + clash_team_response['name'], color=0xA9152B)
+        embed = discord.Embed(title="Clash Team: " + "[" + clash_team_response['abbreviation'] + "] " + clash_team_response['name'] , description = "Tier: " + str(clash_team_response['tier']), color=0xA9152B)
         embed.add_field(name="User", value=user_message, inline=True)
         embed.add_field(name="Role", value=role_message, inline=True)
+        embed.set_thumbnail(url="http://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/clash/roster-logos/" + str(clash_team_response['iconId']) + "/1.png")
         await ctx.send(embed=embed)
         return
 
