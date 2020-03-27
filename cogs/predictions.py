@@ -213,8 +213,9 @@ class Predictions(commands.Cog):
     @commands.has_any_role("Moderators", "Bot Tester")
     async def update(self, ctx):
         try:
-            await db.updatematch(ctx)
-            await ctx.send("Update Match didn't crash")
+            update_check = await db.updatematch(ctx)
+            if update_check != False:
+                await ctx.send("Update Match didn't crash")
         except:
             await ctx.send("There was an error")
         return
