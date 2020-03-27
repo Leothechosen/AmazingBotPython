@@ -178,18 +178,21 @@ class Misc(commands.Cog):
         
 
 async def theserverTime(self):
-    minutecheck = datetime.now(timezone("CET"))
-    fmt = "%H:%M %Z"
-    fmt2 = "%s"
-    minutecheck = int(minutecheck.strftime(fmt2))
-    minutecheck = 61 - (minutecheck % 60)
-    await asyncio.sleep(minutecheck)
-    while True:
-        servertime = self.bot.get_channel(id=servertimechannel)
-        berlin = datetime.now(timezone("CET"))
-        berlin = berlin.strftime(fmt)
-        await servertime.edit(name=berlin)
-        await asyncio.sleep(60)
+    try:
+        minutecheck = datetime.now(timezone("CET"))
+        fmt = "%H:%M %Z"
+        fmt2 = "%s"
+        minutecheck = int(minutecheck.strftime(fmt2))
+        minutecheck = 61 - (minutecheck % 60)
+        await asyncio.sleep(minutecheck)
+        while True:
+            servertime = self.bot.get_channel(id=servertimechannel)
+            berlin = datetime.now(timezone("CET"))
+            berlin = berlin.strftime(fmt)
+            await servertime.edit(name=berlin)
+            await asyncio.sleep(60)
+    except Exception as e:
+        logger.exception("Server Time Error")
 
 
 def setup(bot):
