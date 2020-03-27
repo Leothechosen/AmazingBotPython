@@ -49,7 +49,7 @@ async def league(ctx, region, endpoint, param, paramId):
             "https://" + region + ".api.riotgames.com/lol/" + endpoint + "/v4/" + param + paramId, headers=headers
         ) as response:
             if response.status != 200:
-                await ctx.send("Riot API returned a " + response.status + " error.")
+                await ctx.send("Riot API returned a " + str(response.status) + " error.")
                 logging.warning(
                     "Riot API returned a "
                     + response.status
