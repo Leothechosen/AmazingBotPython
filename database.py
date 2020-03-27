@@ -205,6 +205,8 @@ async def updatematch(ctx):
                 d = "2020-01-01T00:00:00Z"
                 try:
                     for y in range(len(scheduled)):
+                        c.execute("SELECT id FROM Match WHERE id_league = (SELECT id from League WHERE code LIKE ?)", (scheduled[y]["league"]["slug"],))
+                        matches_in_db = [i[0] for i in c.fetchall()]
                         if d < scheduled[y]["startTime"]:
                             if scheduled[y]["type"] == "match":
                                 if scheduled[y]["state"] == "unstarted":
@@ -246,17 +248,58 @@ async def updatematch(ctx):
                                             scheduled[y]["match"]["id"],
                                         ),
                                     )
-                except:
-                    f = open("errorfile.txt", "w")
-                    f.write("JSON = " + str(scheduled) + "\nFailed at y = " + str(y))
-                    f.close()
+                                if int(scheduled[y]["match"]["id"]) in matches_in_db:
+                                    continue
+                                else:
+                                    if scheduled[y]["state"] == "unstarted":
+                                        c.execute(
+                                            "INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), ?, (SELECT id FROM League WHERE code LIKE ?), ?, ?)",
+                                            (
+                                                scheduled[y]["match"]["id"],
+                                                scheduled[y]["match"]["teams"][0]["code"],
+                                                scheduled[y]["match"]["teams"][1]["code"],
+                                                None,
+                                                scheduled[y]["league"]["slug"],
+                                                scheduled[y]["blockName"],
+                                                scheduled[y]["startTime"],
+                                            ),
+                                        )
+                                    elif scheduled[y]["match"]["teams"][0]["result"]["outcome"] == "win":
+                                        c.execute(
+                                            "INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), ?, ?)",
+                                            (
+                                                scheduled[y]["match"]["id"],
+                                                scheduled[y]["match"]["teams"][0]["code"],
+                                                scheduled[y]["match"]["teams"][1]["code"],
+                                                scheduled[y]["match"]["teams"][0]["code"],
+                                                scheduled[y]["league"]["slug"],
+                                                scheduled[y]["blockName"],
+                                                scheduled[y]["startTime"],
+                                            ),
+                                        )
+                                    else:
+                                        c.execute(
+                                            "INSERT INTO Match(id, id_team_1, id_team_2, id_winning_team, id_league, block_name, start_time) VALUES (?, (SELECT id From Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM Team WHERE code LIKE ?), (SELECT id FROM League WHERE code LIKE ?), ?, ?)",
+                                            (
+                                                scheduled[y]["match"]["id"],
+                                                scheduled[y]["match"]["teams"][0]["code"],
+                                                scheduled[y]["match"]["teams"][1]["code"],
+                                                scheduled[y]["match"]["teams"][1]["code"],
+                                                scheduled[y]["league"]["slug"],
+                                                scheduled[y]["blockName"],
+                                                scheduled[y]["startTime"],
+                                            ),
+                                        )
+
+                except Exception as e:
+                    logger.exception(e)
                     print("Update match errored")
                     await ctx.send("Sorry, there was an unexpected error. Please try again. If it persists, ping Leo.")
-                    return
+                    return False
     conn.commit()
     conn.close()
     await session.close()
-    return
+    return True
 
 
 async def get_next_block_and_matches(league_name):
