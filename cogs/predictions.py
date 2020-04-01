@@ -51,16 +51,10 @@ class Predictions(commands.Cog):
         msg = await ctx.send(embed=embed)
         react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
         league = leagues_list[reaction_list.index(react[0].emoji)]
-        if league == "LPL":
-            embed.set_field_at(
-                0,
-                name="LPL :(",
-                value="Unfortunately, LPL is on hiatus due to the Coronavirus. This means that there are no matches to predict for the time being.",
-                inline=False,
-            )
-            await discord.Message.edit(msg, embed=embed)
-            return
-        block_name, matches = await db.get_next_block_and_matches(league)
+        try:
+            block_name, matches = await db.get_next_block_and_matches(league)
+        except:
+            await ctx.send(f"Unfortunately, {league} doesn't have any matches to predict. If you believe this is an error, ping Leo.")
         allowed_reactions = ["1️⃣", "2️⃣"]
         for x in range(len(matches)):
             team_1, team_2 = await db.fetchTeamIds(matches[x][1], matches[x][2])
