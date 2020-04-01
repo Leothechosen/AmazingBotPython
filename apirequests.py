@@ -26,16 +26,7 @@ async def esports(ctx, endpoint, param, paramId):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + response.status + " error.")
-                logging.warning(
-                    " eSports API returned a "
-                    + response.status
-                    + " response code. Endpoint: "
-                    + endpoint
-                    + " | Parameter_Name: "
-                    + param
-                    + " | Parameter_Value: "
-                    + paramId
-                )
+                logging.warning(f'eSports API returned a {response.status} response code. Endpoint: {endpoint} | Parameter_Name: {param} | Parameter_Value: {paramId}')
                 return
             response = await response.json()
             await session.close()
@@ -45,25 +36,16 @@ async def league(ctx, region, endpoint, param, paramId):
     headers = {"X-Riot-Token": leagueapikey}
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            "https://" + region + ".api.riotgames.com/lol/" + endpoint + "/v4/" + param + paramId, headers=headers
+            "https://" + region + ".api.riotgames.com/lol/" + endpoint + "/v4/" + param + str(paramId), headers=headers
         ) as response:
             if response.status != 200:
                 if endpoint == "spectator":
                     await ctx.send("User is not currently in a game.")
                     return
+                elif endpoint == "match":
+                    return
                 await ctx.send("Riot API returned a " + str(response.status) + " error.")
-                logging.warning(
-                    "Riot API returned a "
-                    + response.status
-                    + " response code. Region: "
-                    + region
-                    + " | Endpoint: "
-                    + endpoint
-                    + " | Parameter_Name: "
-                    + param
-                    + " | Parameter_Value: "
-                    + paramId
-                )
+                logging.warning(f'League API returned a {response.status} response code. Endpoint: {endpoint} | Parameter_Name: {param} | Parameter_Value: {paramId}')
                 return
             response = await response.json()
             await session.close()
@@ -77,18 +59,7 @@ async def tft(ctx, region, endpoint, param, paramId):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + response.status + " error.")
-                logging.warning(
-                    "Riot API returned a "
-                    + response.status
-                    + " response code. Region: "
-                    + region
-                    + " | Endpoint: "
-                    + endpoint
-                    + " | Parameter_Name: "
-                    + param
-                    + " | Parameter_Value: "
-                    + paramId
-                )
+                logging.warning(f'TFT API returned a {response.status} response code. Endpoint: {endpoint} | Parameter_Name: {param} | Parameter_Value: {paramId}')
                 return
             response = await response.json()
             await session.close()
@@ -102,18 +73,7 @@ async def lor(ctx, region, endpoint, param, paramId):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + response.status + " error.")
-                logging.warning(
-                    "Riot API returned a "
-                    + response.status
-                    + " response code. Region: "
-                    + region
-                    + " | Endpoint: "
-                    + endpoint
-                    + " | Parameter_Name: "
-                    + param
-                    + " | Parameter_Value: "
-                    + paramId
-                )
+                logging.warning(f'LoR API returned a {response.status} response code. Endpoint: {endpoint} | Parameter_Name: {param} | Parameter_Value: {paramId}')
                 return
             response = await response.json()
             await session.close()
@@ -125,6 +85,8 @@ async def twitch(user):
         async with session.get(
             "https://api.twitch.tv/kraken/streams/" + user + "?api_verson=5", headers=headers
         ) as response:
+            if response.status != 200:
+                logging.warning(f'Twitch API returned a {response.status} response code.')
             twitchrequest = await response.json()
         await session.close()
     return twitchrequest
@@ -139,7 +101,7 @@ async def github():
         async with session.get("https://api.github.com/repos/Leothechosen/AmazingBotPython/commits", headers=headers) as response:
             githubrequest = await response.json()
             if response.status != 200:
-                logger.info("github returned a " + response.status)
+                logger.info(f'Github API returned a {response.status}')
             await session.close()
     return githubrequest
 
@@ -152,7 +114,6 @@ async def foldingathome(ctx, endpoint, user_or_team):
                 await ctx.send("The Folding@Home API appears to be down right now. Sorry!")
                 return
             if response.status != 200 or "error" in foldingathomerequest:
-                logger.info("Folding@Home returned a " + str(response.status))
                 await ctx.send("There was an error with the API request.")
                 return
             await session.close()
@@ -166,14 +127,7 @@ async def clash_user(ctx, region, summonerid):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + str(response.status) + " error.")
-                logging.warning(
-                    "Riot API returned a "
-                    + response.status
-                    + " response code. Region: "
-                    + region
-                    + " | Summoner_ID: "
-                    + str(summonerid)
-                )
+                logging.warning(f'Clash User API returned a {response.status} response code. Region: {region} | Summoner_ID: {summonerid}')
                 return
             response = await response.json()
             await session.close()
@@ -187,14 +141,7 @@ async def clash_team(ctx, region, teamid):
         ) as response:
             if response.status != 200:
                 await ctx.send("Riot API returned a " + str(response.status) + " error.")
-                logging.warning(
-                    "Riot API returned a "
-                    + response.status
-                    + " response code. Region: "
-                    + region
-                    + " | Team_ID: "
-                    + str(teamid)
-                )
+                logging.warning(f'Clash Team API returned a {response.status} response code. Region {region} | Team_ID: {teamid}')
                 return
             response = await response.json()
             await session.close()
