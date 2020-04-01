@@ -5,6 +5,7 @@ import utils
 import apirequests
 from discord.ext import commands
 import logging
+import time
 
 logger = logging.getLogger("AmazingBot." + __name__)
 
@@ -136,6 +137,48 @@ class League(commands.Cog):
         embed.add_field(name="Role", value=role_message, inline=True)
         embed.set_thumbnail(url="http://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/clash/roster-logos/" + str(clash_team_response['iconId']) + "/1.png")
         await ctx.send(embed=embed)
+        return
+
+    @league.command(pass_context=True, aliases=["Match"])
+    async def match(self, ctx, user_name=None, region=None):
+        if user_name == None:
+            await ctx.send("Usage: `-league match [user_name]")
+            return
+        if region == None:
+            await ctx.send("You did not specify a region")
+            return
+        region = await utils.region_to_valid_region(region.upper())
+        if region == "Invalid Region":
+            await ctx.send("The server you entered is invalid, or it's a Garena server")
+            return
+        summonerid = (await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name))['id']
+        spectator_response = await apirequests.league(ctx, region, "spectator", "active-games/by-summoner/", summonerid)
+        print(spectator_response)
+        team_1_msg = ""
+        team_2_msg = ""
+        for player in spectator_response["participants"]:
+            if player['teamId'] == 100:
+                team_1_msg += (await apirequests.league(ctx, region, "summoner", "summoners/", player['summonerId']))['name'] + " (" + (await utils.championid_to_champion(str(player["championId"]))) + ")" + '\n'
+            elif player['teamId'] == 200:
+                team_2_msg += "(" + (await utils.championid_to_champion(str(player["championId"]))) + ") " + (await apirequests.league(ctx, region, "summoner", "summoners/", player['summonerId']))['name'] + '\n'
+        in_game_timer = round(time.time() - spectator_response["gameStartTime"]/1000)
+        if in_game_timer/60 >= 10:
+            time_remaining = str(int(in_game_timer/60)) + ":"
+        else:
+            time_remaining = "0" + str(int(in_game_timer/60)) + ":"
+        if in_game_timer%60 >= 10:
+            time_remaining += str(int(in_game_timer%60))
+        else:
+            time_remaining += "0" + str(int(in_game_timer%60))
+        embed = discord.Embed(title=user_name + " Match", description="In-Game Time: " + time_remaining, color=0xA9152B)
+        embed.add_field(name="Team 1", value=team_1_msg, inline=True)
+        embed.add_field(name="Team 2", value=team_2_msg, inline=True)
+        embed.set_footer(text="In-Game Time is approximate.")
+        await ctx.send(embed=embed)
+        spectate_file = await utils.spectategen(ctx, region, spectator_response["gameId"], spectator_response["observers"]['encryptionKey'])
+        if spectate_file == False:
+            return
+        await ctx.send("If you would like to spectate, download this file and run it (Windows Only, NA/EUW Only)", file = discord.File('Spectate.bat'))
         return
 
 def setup(bot):
