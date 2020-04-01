@@ -80,8 +80,14 @@ class eSports(commands.Cog):
             if scheduled_matches[x]["state"] == "unstarted":
                 team_1 = scheduled_matches[x]["match"]["teams"][0]
                 team_2 = scheduled_matches[x]["match"]["teams"][1]
-                team_1_record = "(" + str(team_1["record"]["wins"]) + "-" + str(team_1["record"]["losses"]) + ")"
-                team_2_record = "(" + str(team_2["record"]["wins"]) + "-" + str(team_2["record"]["losses"]) + ")"
+                if team_1["record"] != None:
+                    team_1_record = "(" + str(team_1["record"]["wins"]) + "-" + str(team_1["record"]["losses"]) + ")"
+                else:
+                    team_1_record = None
+                if team_2["record"] != None:
+                    team_2_record = "(" + str(team_2["record"]["wins"]) + "-" + str(team_2["record"]["losses"]) + ")"
+                else:
+                    team_1_record = None
                 if team is None:
                     starttime = await utils.get_start_time(scheduled_matches[x]["startTime"])
                     if currenttime + timedelta(days=7) > starttime:
