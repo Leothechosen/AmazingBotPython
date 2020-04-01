@@ -31,7 +31,7 @@ class Misc(commands.Cog):
     async def restartservertime(self, ctx):
         await ctx.send("Restarting the clock...")
         await theserverTime(self)
-
+    
     @commands.command(name="temp")
     async def temp(self, ctx, temper=None):
         if temper == None:
@@ -45,15 +45,15 @@ class Misc(commands.Cog):
             if tempunit == "F":
                 tempC = (float(temper) - 32) * (5 / 9)
                 tempK = tempC + 273.15
-                await ctx.send(temper + tempunit + " = " + str(tempC) + "C = " + str(tempK) + "K")
+                await ctx.send(f'{temper}{tempunit} = {tempC}C = {tempK}K')
             elif tempunit == "C":
                 tempF = (float(temper) * (9 / 5)) + 32
                 tempK = float(temper) + 273.15
-                await ctx.send(temper + tempunit + " = " + str(tempF) + "F = " + str(tempK) + "K")
+                await ctx.send(f'{temper}{tempunit} = {tempF}F = {tempK}K')
             elif tempunit == "K":
                 tempC = float(temper) - 273.15
                 tempF = (tempC * (9 / 5)) + 32
-                await ctx.send(temper + tempunit + " = " + str(tempC) + "C = " + str(tempF) + "F")
+                await ctx.send(f'{temper}{tempunit} = {tempC}C = {tempF}F')
             else:
                 await ctx.send("Invalid request")
         except:
