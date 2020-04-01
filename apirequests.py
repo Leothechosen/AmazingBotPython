@@ -41,7 +41,6 @@ async def esports(ctx, endpoint, param, paramId):
             await session.close()
     return response
 
-
 async def league(ctx, region, endpoint, param, paramId):
     headers = {"X-Riot-Token": leagueapikey}
     async with aiohttp.ClientSession() as session:
@@ -49,6 +48,9 @@ async def league(ctx, region, endpoint, param, paramId):
             "https://" + region + ".api.riotgames.com/lol/" + endpoint + "/v4/" + param + paramId, headers=headers
         ) as response:
             if response.status != 200:
+                if endpoint == "spectator":
+                    await ctx.send("User is not currently in a game.")
+                    return
                 await ctx.send("Riot API returned a " + str(response.status) + " error.")
                 logging.warning(
                     "Riot API returned a "
@@ -66,7 +68,6 @@ async def league(ctx, region, endpoint, param, paramId):
             response = await response.json()
             await session.close()
     return response
-
 
 async def tft(ctx, region, endpoint, param, paramId):
     headers = {"X-Riot-Token": ""}
@@ -93,7 +94,6 @@ async def tft(ctx, region, endpoint, param, paramId):
             await session.close()
     return response
 
-
 async def lor(ctx, region, endpoint, param, paramId):
     headers = {"X-Riot-Token": runeterraapikey}
     async with aiohttp.ClientSession() as session:
@@ -119,7 +119,6 @@ async def lor(ctx, region, endpoint, param, paramId):
             await session.close()
     return response
 
-
 async def twitch(user):
     headers = {"Accept": "application//vnd.twitchtv.v5+json", "Client-ID": twitchapikey}
     async with aiohttp.ClientSession() as session:
@@ -129,7 +128,6 @@ async def twitch(user):
             twitchrequest = await response.json()
         await session.close()
     return twitchrequest
-
 
 async def github():
     headers = {
@@ -159,8 +157,7 @@ async def foldingathome(ctx, endpoint, user_or_team):
                 return
             await session.close()
     return foldingathomerequest
-            
-
+        
 async def clash_user(ctx, region, summonerid):
     headers = {"X-Riot-Token": leagueapikey}
     async with aiohttp.ClientSession() as session:
