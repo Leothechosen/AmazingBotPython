@@ -87,16 +87,12 @@ class League(commands.Cog):
         if region == None:
             await ctx.send("You did not specify a region")
             return
-        embed = discord.Embed(title=name + "'s Profile on " + region.upper(), color=0xA9152B)
         region = await utils.region_to_valid_region(region.upper())
         summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
         profileicon = summoneridrequest["profileIconId"]
-        # accountid = summoneridrequest['accountId']
-        # summonerlevel = summoneridrequest['summonerLevel']
+        accountid = summoneridrequest['accountId']
+        summonerlevel = summoneridrequest['summonerLevel']
         summonerid = summoneridrequest["id"]
-        embed.set_thumbnail(
-            url="http://ddragon.leagueoflegends.com/cdn/10.3.1/img/profileicon/" + str(profileicon) + ".png"
-        )
         masteries = await apirequests.league(
             ctx, region, "champion-mastery", "champion-masteries/by-summoner/", summonerid
         )
@@ -104,7 +100,34 @@ class League(commands.Cog):
             champions = await utils.championid_to_champion(str(masteries[x]["championId"]))
             masterypoints = str(masteries[x]["championPoints"])
             mastery_message += champions + " | " + masterypoints + "\n"
+        matches_played = await apirequests.league(ctx, region, "match", "matchlists/by-account/", accountid + "?endIndex=1&beginIndex=0")
+        embed = discord.Embed(title=name + "'s Profile on " + region.upper(), description=f'Summoner Level: {summonerlevel}',color=0xA9152B)
+        embed.set_thumbnail(
+            url="http://ddragon.leagueoflegends.com/cdn/10.3.1/img/profileicon/" + str(profileicon) + ".png"
+        )
         embed.add_field(name="Top 3 Masteries", value=mastery_message, inline=False)
+        if matches_played != None:
+            match_id = matches_played["matches"][0]["gameId"]
+            champ_id_played = matches_played["matches"][0]["champion"]
+            champ_played = await utils.championid_to_champion(str(champ_id_played))
+            #champ_emoji = await utils.champion_to_emoji(champ_played)
+            match_info = await apirequests.league(ctx, region, "match", "matches/", match_id)
+            time_started = time.strftime('%m/%d', time.localtime(match_info["gameCreation"]/1000))
+            user_match_info = None
+            for participant in match_info["participantIdentities"]:
+                if participant["player"]["accountId"] == accountid:
+                    participant_id = participant["participantId"]
+            for participant in match_info["participants"]:
+                if participant["participantId"] == participant_id:
+                    user_match_info = participant
+            if user_match_info != None:
+                user_stats = user_match_info["stats"]
+                if user_stats['win'] == False:
+                    match_result = "Loss"
+                else:
+                    match_result = "Win"
+                KDA = (f'{user_stats["kills"]}/{user_stats["deaths"]}/{user_stats["assists"]}')
+                embed.add_field(name=f'Last Game Played ({time_started})', value=(f'{match_result} as {champ_played}: ({KDA})'), inline=False)
         await ctx.send(embed=embed)
         return
 
