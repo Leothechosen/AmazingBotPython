@@ -50,7 +50,7 @@ class Predictions(commands.Cog):
         embed.add_field(name="Which League would you like to predict?", value=leagues_message, inline=False)
         msg = await ctx.send(embed=embed)
         react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
-        if isinstance(react, bool) is False:
+        if isinstance(react, bool) is True:
             return
         league = leagues_list[reaction_list.index(react[0].emoji)]
         try:
@@ -58,18 +58,23 @@ class Predictions(commands.Cog):
         except:
             await ctx.send(f"Unfortunately, {league} doesn't have any matches to predict. If you believe this is an error, ping Leo.")
         allowed_reactions = ["1️⃣", "2️⃣"]
-        for x in range(len(matches)):
-            team_1, team_2 = await db.fetchTeamIds(matches[x][1], matches[x][2])
-            embed.title = f'Predictions: {league} {block_name} - {team_1} vs {team_2}'
-            embed.set_field_at(0, name="Which team do you predict will win?", value=f'1: {team_1} \n2: {team_2}')
+        try:
+            for x in range(len(matches)):
+                team_1, team_2 = await db.fetchTeamIds(matches[x][1], matches[x][2])
+                embed.title = f'Predictions: {league} {block_name} - {team_1} vs {team_2}'
+                embed.set_field_at(0, name="Which team do you predict will win?", value=f'1: {team_1} \n2: {team_2}')
+                await discord.Message.edit(msg, embed=embed)
+                react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
+                if reaction_list.index(react[0].emoji) == 0:
+                    await db.writePredictions(team_1, matches[x][0], original_user)
+                    end_message += f'**{team_1}** vs {team_2}'
+                else:
+                    await db.writePredictions(team_2, matches[x][0], original_user)
+                    end_message += f'{team_1} vs **{team_2}**'
+        except:
+            embed.set_field_at(0, name="Error", value=f'Unfortunately, {league} {block_name} is not able to be predicted yet. Once the entirity of teams in {block_name} is determined, you will be able to predict it')
             await discord.Message.edit(msg, embed=embed)
-            react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
-            if reaction_list.index(react[0].emoji) == 0:
-                await db.writePredictions(team_1, matches[x][0], original_user)
-                end_message += f'**{team_1}** vs {team_2}'
-            else:
-                await db.writePredictions(team_2, matches[x][0], original_user)
-                end_message += f'{team_1} vs **{team_2}**'
+            return
         embed.title = f'Predictions: {league} {block_name}'
         embed.set_field_at(0, name="Your Predictions", value=end_message, inline=False)
         await discord.Message.edit(msg, embed=embed)
