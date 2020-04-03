@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 from dotenv import load_dotenv
 import apirequests
-import subprocess
 import logging
 import random
 
@@ -191,7 +190,7 @@ async def theserverTime(self):
             berlin = berlin.strftime(fmt)
             await servertime.edit(name=berlin)
             await asyncio.sleep(60)
-    except Exception as e:
+    except:
         logger.exception("Server Time Error")
 
 
