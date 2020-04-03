@@ -462,6 +462,7 @@ async def valid_role(role: str):
         "DUO_CARRY": "Bot",
         "DUO_SUPPORT": "Support"
     }
+    return switcher.get(role, "")
 
 async def region_to_valid_region(region: str):
     switcher = {
