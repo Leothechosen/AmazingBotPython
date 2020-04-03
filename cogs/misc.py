@@ -111,7 +111,7 @@ class Misc(commands.Cog):
         ]
         await ctx.send(responses[random.randint(0, len(responses))])
 
-    @commands.command(name="sourcecode")
+    @commands.command(name="sourcecode", aliases=["github"])
     async def sourcecode(self, ctx):
         try:
             githubrequest = await apirequests.github()
