@@ -25,7 +25,7 @@ class Predictions(commands.Cog):
         importlib.reload(db)
         await ctx.send("DB Cache refreshed")
 
-    @commands.group(pass_context=True, aliases=["Prediction"])
+    @commands.group(pass_context=True, aliases=["Prediction", "predictions"])
     async def prediction(self, ctx):
         await db.checkdiscord(ctx)
         if self.updating == False:
@@ -45,11 +45,13 @@ class Predictions(commands.Cog):
         reaction_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
         leagues_list = ["LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
         for x in range(len(reaction_list)):
-            leagues_message += str(x + 1) + ": " + leagues_list[x] + "\n"
+            leagues_message += f'{x+1}: {leagues_list[x]}\n'
         embed = discord.Embed(title="Predictions: League", color=0xA9152B)
         embed.add_field(name="Which League would you like to predict?", value=leagues_message, inline=False)
         msg = await ctx.send(embed=embed)
         react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
+        if isinstance(react, bool) is False:
+            return
         league = leagues_list[reaction_list.index(react[0].emoji)]
         try:
             block_name, matches = await db.get_next_block_and_matches(league)
@@ -58,17 +60,17 @@ class Predictions(commands.Cog):
         allowed_reactions = ["1️⃣", "2️⃣"]
         for x in range(len(matches)):
             team_1, team_2 = await db.fetchTeamIds(matches[x][1], matches[x][2])
-            embed.title = "Predictions: " + league + " " + block_name + " - " + team_1 + " vs " + team_2
-            embed.set_field_at(0, name="Which team do you predict will win?", value="1: " + team_1 + "\n2: " + team_2)
+            embed.title = f'Predictions: {league} {block_name} - {team_1} vs {team_2}'
+            embed.set_field_at(0, name="Which team do you predict will win?", value=f'1: {team_1} \n2: {team_2}')
             await discord.Message.edit(msg, embed=embed)
             react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
             if reaction_list.index(react[0].emoji) == 0:
                 await db.writePredictions(team_1, matches[x][0], original_user)
-                end_message += "**" + team_1 + "** vs " + team_2 + "\n"
+                end_message += f'**{team_1}** vs {team_2}'
             else:
                 await db.writePredictions(team_2, matches[x][0], original_user)
-                end_message += team_1 + " vs **" + team_2 + "**\n"
-        embed.title = "Predictions: " + league + " " + block_name
+                end_message += f'{team_1} vs **{team_2}**'
+        embed.title = f'Predictions: {league} {block_name}'
         embed.set_field_at(0, name="Your Predictions", value=end_message, inline=False)
         await discord.Message.edit(msg, embed=embed)
         await discord.Message.clear_reactions(msg)

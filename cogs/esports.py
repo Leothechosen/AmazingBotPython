@@ -44,8 +44,8 @@ class eSports(commands.Cog):
                 ordinal = str(rankings[x]["ordinal"])
                 ordinal = await utils.integerPrefix(ordinal)
                 ordinal_message += ordinal + "\n"
-                teams_message += str(team["name"]) + "\n"
-                records_message += str(team["record"]["wins"]) + "-" + str(team["record"]["losses"]) + "\n"
+                teams_message += f'{team["name"]}\n'
+                records_message += f'{team["record"]["wins"]} - {team["record"]["losses"]}\n'
         embed = discord.Embed(title=tournament.upper() + " Standings", color=0xA9152B)
         embed.add_field(name="Place", value=ordinal_message, inline=True)
         embed.add_field(name="Team", value=teams_message, inline=True)
