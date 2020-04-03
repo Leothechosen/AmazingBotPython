@@ -127,7 +127,11 @@ class League(commands.Cog):
                 else:
                     match_result = "Win"
                 KDA = (f'{user_stats["kills"]}/{user_stats["deaths"]}/{user_stats["assists"]}')
-                embed.add_field(name=f'Last Game Played ({time_started})', value=(f'{match_result} as {champ_played}: ({KDA})'), inline=False)
+                if user_match_info["timeline"]["role"] == "DUO_CARRY" or user_match_info["timeline"]["role"] == "DUO_SUPPORT":
+                    role = await utils.valid_role(user_match_info["timeline"]["role"])
+                else:
+                    role = await utils.valid_role(user_match_info["timeline"]["lane"])
+                embed.add_field(name=f'Last Game Played ({time_started})', value=(f'{match_result} as {champ_played} {role}: ({KDA})'), inline=False)
         await ctx.send(embed=embed)
         return
 
@@ -176,7 +180,6 @@ class League(commands.Cog):
             return
         summonerid = (await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name))['id']
         spectator_response = await apirequests.league(ctx, region, "spectator", "active-games/by-summoner/", summonerid)
-        print(spectator_response)
         team_1_msg = ""
         team_2_msg = ""
         for player in spectator_response["participants"]:
