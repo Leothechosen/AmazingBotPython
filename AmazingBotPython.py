@@ -30,7 +30,8 @@ async def on_connect():
 
 @bot.event
 async def on_command(ctx):
-    logger.info(" Message: '" + ctx.message.content + "' - User: " + str(ctx.message.author))
+    logger.info(f' Message {ctx.message.content} - User: {ctx.message.author}')
+    await ctx.trigger_typing()
     return
 
 
