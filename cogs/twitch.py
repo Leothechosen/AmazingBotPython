@@ -4,7 +4,7 @@ import asyncio
 import os
 import random
 import apirequests
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import logging
 
@@ -25,23 +25,18 @@ announcements = [
 class Twitch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.amazingStream.start()
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await amazingLive(self)
-
-
-async def amazingLive(self):
-    announcementchannel = int(os.getenv("AMAZING_ANNOUNCEMENT_ID"))
-    streamlive = True  # Assume the stream is live
-    announcementchannel = self.bot.get_channel(id=announcementchannel)
-    while True:
+    @tasks.loop(minutes=1.0)
+    async def amazingStream(self):
+        announcementchannel = int(os.getenv("AMAZING_ANNOUNCEMENT_ID"))
+        streamlive = True  # Assume the stream is live
+        announcementchannel = self.bot.get_channel(id=announcementchannel)
         twitchrequest = await apirequests.twitch(amazing)
         # If not live while code thinks stream is live
         if twitchrequest["stream"] == None and streamlive == True:
             streamlive = False
             logger.info("Amazing has gone offline")
-            continue
         # If live while code thinks stream isn't live
         elif twitchrequest["stream"] != None and streamlive == False:
             await announcementchannel.send(
@@ -49,9 +44,6 @@ async def amazingLive(self):
             )
             streamlive = True
             logger.info("Amazing has gone online")
-            continue
-        await asyncio.sleep(60)
-
 
 def setup(bot):
     bot.add_cog(Twitch(bot))
