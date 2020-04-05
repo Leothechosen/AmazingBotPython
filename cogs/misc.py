@@ -4,7 +4,7 @@ import os
 import utils
 from pytz import timezone
 from datetime import datetime, timedelta
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import apirequests
 import logging
@@ -19,17 +19,17 @@ servertimechannel = int(os.getenv("SERVER_TIME_CHANNEL"))
 class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.theserverTime.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("AmazingBot connected to Discord")
-        await theserverTime(self)
 
     @commands.command(name="restartservertime")
     @commands.has_role("Moderators")
     async def restartservertime(self, ctx):
         await ctx.send("Restarting the clock...")
-        await theserverTime(self)
+        self.theserverTime.start()
     
     @commands.command(name="temp")
     async def temp(self, ctx, temper=None):
@@ -174,25 +174,24 @@ class Misc(commands.Cog):
         await ctx.send(embed=embed)
         return
 
-        
-
-async def theserverTime(self):
-    try:
-        minutecheck = datetime.now(timezone("CET"))
-        fmt = "%H:%M %Z"
-        fmt2 = "%s"
-        minutecheck = int(minutecheck.strftime(fmt2))
-        minutecheck = 61 - (minutecheck % 60)
-        await asyncio.sleep(minutecheck)
-        while True:
+    @tasks.loop(minutes=1.0)
+    async def theserverTime(self):
+        try:
+            fmt = "%H:%M %Z"
             servertime = self.bot.get_channel(id=servertimechannel)
             berlin = datetime.now(timezone("CET"))
             berlin = berlin.strftime(fmt)
             await servertime.edit(name=berlin)
-            await asyncio.sleep(60)
-    except:
-        logger.exception("Server Time Error")
-
+        except:
+            logger.exception("Server Time Error")
+    
+    @theserverTime.before_loop
+    async def before_theserverTime(self):
+        minutecheck = datetime.now(timezone("CET"))
+        fmt2 = "%s"
+        minutecheck = int(minutecheck.strftime(fmt2))
+        minutecheck = 61 - (minutecheck % 60)
+        await asyncio.sleep(minutecheck)
 
 def setup(bot):
     bot.add_cog(Misc(bot))
