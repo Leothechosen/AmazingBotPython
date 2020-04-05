@@ -2,13 +2,14 @@ import aiohttp
 import asyncio
 import sqlite3
 import logging
+import apirequests
 
 logger = logging.getLogger("AmazingBot." + __name__)
 
 
 async def checkDB():
     try:
-        dbfile = open("Predictions.db")
+        dbfile = open("AmazingBot.db")
         logger.info("Database Accessed")
         dbfile.close()
         return
@@ -19,7 +20,7 @@ async def checkDB():
 
 
 async def createdb():
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
 
     c.executescript(
@@ -58,6 +59,13 @@ async def createdb():
 		id_match integer,
 		id_team_predicted integer
 	);
+
+    CREATE TABLE RiotUserInfo (
+        accountID text,
+        summonerName text,
+        summonerID text,
+        puuid text
+    );
 	
 	INSERT INTO League(code, name) VALUES ("lcs", "LCS");
 	INSERT INTO League(code, name) VALUES ("lec", "LEC");
@@ -166,7 +174,7 @@ async def createdb():
 
 
 async def checkdiscord(ctx):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     c.execute("SELECT * FROM User WHERE discord_id = ?", (ctx.author.id,))
     data = c.fetchone()
@@ -177,7 +185,7 @@ async def checkdiscord(ctx):
 
 
 async def updatematch(ctx):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     # Following array: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, LCSA (All spring split)
     leagues = [
@@ -303,7 +311,7 @@ async def updatematch(ctx):
 
 
 async def get_next_block_and_matches(league_name):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     c.execute(
         "SELECT DISTINCT o.block_name FROM Match o WHERE o.id_league = (SELECT id FROM League WHERE name = ?) and strftime('%Y-%m-%dT%H-%M-%SZ', 'now') < (SELECT min(i.start_time) FROM Match i WHERE i.id_league = (SELECT id FROM League WHERE name = ?) and i.block_name = o.block_name) ORDER BY start_time",
@@ -319,7 +327,7 @@ async def get_next_block_and_matches(league_name):
 
 
 async def fetchTeamIds(team_1, team_2):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     c.execute("SELECT name FROM Team WHERE id = ?", (team_1,))
     team_1 = c.fetchone()[0]
@@ -331,7 +339,7 @@ async def fetchTeamIds(team_1, team_2):
 
 async def writePredictions(predicted_team, match, user):
     predictioncheck = None
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     c.execute(
         "SELECT id_match FROM Prediction WHERE id_match = ? and id_user = (SELECT id FROM User WHERE discord_id = ?)",
@@ -353,7 +361,7 @@ async def writePredictions(predicted_team, match, user):
 
 
 async def fetchLeaguesPredicted(user):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     c.execute(
         "select distinct id_league from match where id in (select id_match from prediction p where p.id_user = (select id from user where discord_id = ?))",
@@ -365,7 +373,7 @@ async def fetchLeaguesPredicted(user):
 
 
 async def fetchBlocksPredicted(user, league):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     c.execute(
         """SELECT
@@ -397,7 +405,7 @@ async def fetchBlocksPredicted(user, league):
 
 
 async def fetchPredictions(user, league, block_name):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     c.execute(
         """SELECT
@@ -438,7 +446,7 @@ async def fetchPredictions(user, league, block_name):
 
 
 async def fetchCorrect(league, discord_id):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     block_name_msg = ""
     correct_pred_msg = ""
@@ -484,7 +492,7 @@ async def fetchCorrect(league, discord_id):
 
 
 async def fetchLeaderboard(league):
-    conn = sqlite3.connect("Predictions.db")
+    conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
     users = []
     record = []
@@ -584,3 +592,21 @@ async def fetchLeaderboard(league):
         record.append(str(leaderboard_data[x][1]) + "-" + str(leaderboard_data[x][2]))
     conn.close()
     return users, record
+
+async def checkSummonerInfo(summonerName):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT * FROM RiotUserInfo WHERE summonerName = ?", (summonerName,))
+    summonerInfo = c.fetchone()
+    conn.close()
+    return summonerInfo
+
+async def writeSummonerInfo(summonerInfo):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("INSERT INTO RiotUserInfo (accountID, summonerName, summonerID, puuid) VALUES (?, ?, ?, ?)", (summonerInfo["accountId"], summonerInfo["name"], summonerInfo["id"], summonerInfo["puuid"]))
+    conn.commit()
+    conn.close()
+
+
+    

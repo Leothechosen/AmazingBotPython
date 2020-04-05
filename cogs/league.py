@@ -6,6 +6,7 @@ import apirequests
 from discord.ext import commands
 import logging
 import time
+import database
 
 logger = logging.getLogger("AmazingBot." + __name__)
 
@@ -34,8 +35,13 @@ class League(commands.Cog):
         if region == "Invalid Region":
             await ctx.send("The server you entered is invalid, or it's a Garena server")
         else:
-            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
-            summonerid = summoneridrequest["id"]
+            summonerInfo = await database.checkSummonerInfo(name)
+            if summonerInfo is None:
+                summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
+                await database.writeSummonerInfo(summoneridrequest)
+                summonerid = summoneridrequest["id"]
+            else:
+                summonerid = summonerInfo[2]
             rankedrequest = await apirequests.league(ctx, region, "league", "entries/by-summoner/", summonerid)
             # tftrequest = await apirequests.league(ctx, region, "league", "entries/by-summoner", summonerid)
             if rankedrequest == []:  # and tftrequest == []:
@@ -136,8 +142,8 @@ class League(commands.Cog):
         return
 
     @league.command(pass_context=True, aliases=["Clash"])
-    async def clash(self, ctx, user_name=None, region=None):
-        if user_name == None:
+    async def clash(self, ctx, name=None, region=None):
+        if name == None:
             await ctx.send("Usage: `-league clash [user_name]`")
             return
         if region == None:
@@ -147,10 +153,16 @@ class League(commands.Cog):
         if region == "Invalid Region":
             await ctx.send("The server you entered is invalid, or it's a Garena server")
             return
-        summonerid = (await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name))['id']
+        summonerInfo = await database.checkSummonerInfo(name)
+        if summonerInfo is None:
+            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
+            await database.writeSummonerInfo(summoneridrequest)
+            summonerid = summoneridrequest["id"]
+        else:
+            summonerid = summonerInfo[2]
         clash_user_response = await apirequests.clash_user(ctx, region, summonerid)
         if clash_user_response == []:
-            await ctx.send(user_name + " is not in a Clash team at this time.")
+            await ctx.send(name + " is not in a Clash team at this time.")
             return
         clash_team_response = await apirequests.clash_team(ctx, region, clash_user_response[0]['teamId'])
         user_message = ""
@@ -167,8 +179,8 @@ class League(commands.Cog):
         return
 
     @league.command(pass_context=True, aliases=["Match"])
-    async def match(self, ctx, user_name=None, region=None):
-        if user_name == None:
+    async def match(self, ctx, name=None, region=None):
+        if name == None:
             await ctx.send("Usage: `-league match [user_name]")
             return
         if region == None:
@@ -178,8 +190,16 @@ class League(commands.Cog):
         if region == "Invalid Region":
             await ctx.send("The server you entered is invalid, or it's a Garena server")
             return
-        summonerid = (await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name))['id']
+        summonerInfo = await database.checkSummonerInfo(name)
+        if summonerInfo is None:
+            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
+            await database.writeSummonerInfo(summoneridrequest)
+            summonerid = summoneridrequest["id"]
+        else:
+            summonerid = summonerInfo[2]
         spectator_response = await apirequests.league(ctx, region, "spectator", "active-games/by-summoner/", summonerid)
+        if spectator_response is None:
+            return
         team_1_msg = ""
         team_2_msg = ""
         for player in spectator_response["participants"]:
@@ -196,7 +216,7 @@ class League(commands.Cog):
             time_remaining += str(int(in_game_timer%60))
         else:
             time_remaining += "0" + str(int(in_game_timer%60))
-        embed = discord.Embed(title=user_name + " Match", description="In-Game Time: " + time_remaining, color=0xA9152B)
+        embed = discord.Embed(title=name + " Match", description="In-Game Time: " + time_remaining, color=0xA9152B)
         embed.add_field(name="Team 1", value=team_1_msg, inline=True)
         embed.add_field(name="Team 2", value=team_2_msg, inline=True)
         embed.set_footer(text="In-Game Time is approximate.")
