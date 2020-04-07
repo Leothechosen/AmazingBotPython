@@ -30,11 +30,11 @@ class Lor(commands.Cog):
         if region.lower() not in valid_regions:
             await ctx.send("Invalid region. Supported regions are: Americas, Asia, Europe")
             return
-        embed = discord.Embed(title="LoR Master Tier in " + region.title(), color=0xA9152B)
         leaderboards = await apirequests.lor(ctx, region, "ranked", "leaderboards", "")
         for x in range(len(leaderboards["players"])):
             rank_message += str(x + 1) + "\n"
             leaderboard_message += leaderboards["players"][x]["name"] + "\n"
+        embed = discord.Embed(title="LoR Master Tier in " + region.title(), color=0xA9152B)
         embed.add_field(name="Rank", value=rank_message, inline=True)
         embed.add_field(name="Name", value=leaderboard_message, inline=True)
         await ctx.send(embed=embed)
