@@ -3,10 +3,8 @@ import utils
 import database as db
 import discord
 import asyncio
-import sqlite3
 import sys
 import importlib
-import time
 import logging
 
 logger = logging.getLogger("AmazingBot." + __name__)
