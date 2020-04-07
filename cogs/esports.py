@@ -81,13 +81,13 @@ class eSports(commands.Cog):
                 team_1 = scheduled_matches[x]["match"]["teams"][0]
                 team_2 = scheduled_matches[x]["match"]["teams"][1]
                 if team_1["record"] != None:
-                    team_1_record = "(" + str(team_1["record"]["wins"]) + "-" + str(team_1["record"]["losses"]) + ")"
+                    team_1_record = f'({team_1["record"]["wins"]} - {team_1["record"]["losses"]})'
                 else:
                     team_1_record = None
                 if team_2["record"] != None:
-                    team_2_record = "(" + str(team_2["record"]["wins"]) + "-" + str(team_2["record"]["losses"]) + ")"
+                    team_2_record = f'({team_2["record"]["wins"]} - {team_2["record"]["losses"]})'
                 else:
-                    team_1_record = None
+                    team_2_record = None
                 if team is None:
                     starttime = await utils.get_start_time(scheduled_matches[x]["startTime"])
                     if currenttime + timedelta(days=7) > starttime:
@@ -95,11 +95,11 @@ class eSports(commands.Cog):
                         remainingtime = await utils.timeformatting(days, hours, minutes)
                         schedule_message += remainingtime
                         if leaguename == "LCSA":
-                            teams1_message += "**" + team_1["name"][:-8] + " " + team_1_record + "**\n"
-                            teams2_message += "**" + team_2["name"][:-8] + " " + team_2_record + "**\n"
+                            teams1_message += f'**{team_1["name"][:-8]} {team_1_record}**\n'
+                            teams2_message += f'**{team_2["name"][:-8]} {team_2_record}**\n'
                         else:
-                            teams1_message += "**" + team_1["name"] + " " + team_1_record + "**\n"
-                            teams2_message += "**" + team_2["name"] + " " + team_2_record + "**\n"
+                            teams1_message += f'**{team_1["name"]} {team_1_record}**\n'
+                            teams2_message += f'**{team_2["name"]} {team_2_record}**\n'
                 else:
                     if next_4_matches != 4:
                         if team_1["code"] == team or team_2["code"] == team:
@@ -109,11 +109,11 @@ class eSports(commands.Cog):
                             schedule_message += remainingtime
                             if team_1["code"] == team:
                                 team_record = team_1_record
-                                opponent_message += "**" + team_2["name"] + " " + team_2_record + "**\n"
+                                opponent_message += f'**{team_2["name"]} {team_2_record}**\n'
                                 thumbnail = team_1["image"]
                             else:
                                 team_record = team_2_record
-                                opponent_message += "**" + team_1["name"] + " " + team_1_record + "**\n"
+                                opponent_message += f'**{team_1["name"]} {team_1_record}**\n'
                                 thumbnail = team_2["image"]
                             next_4_matches += 1
         if schedule_message == "":
@@ -152,10 +152,10 @@ class eSports(commands.Cog):
         embed = discord.Embed(title=team.upper() + " Roster", color=0xA9152B)
         names = team_response["data"]["teams"][0]["players"]
         for x in range(len(names)):
-            role_message += (names[x]["role"]).title() + "\n"
+            role_message += f'{names[x]["role"].title()}\n'
         embed.add_field(name="Role", value=role_message, inline=True)
         for x in range(len(names)):
-            name_message += names[x]["firstName"] + " '" + names[x]["summonerName"] + "' " + names[x]["lastName"] + "\n"
+            name_message += f'{names[x]["firstName"]} "{names[x]["summonerName"]}" {names[x]["lastName"]}\n'
         embed.add_field(name="Name", value=name_message, inline=True)
         embed.set_thumbnail(url=team_response["data"]["teams"][0]["image"])
         await ctx.send(embed=embed)

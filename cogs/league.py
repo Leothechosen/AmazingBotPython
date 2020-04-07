@@ -50,14 +50,7 @@ class League(commands.Cog):
                 return
             if rankedrequest != []:
                 for x in range(len(rankedrequest)):
-                    tier_rank_lp = (
-                        rankedrequest[x]["tier"]
-                        + " "
-                        + rankedrequest[x]["rank"]
-                        + " "
-                        + str(rankedrequest[x]["leaguePoints"])
-                        + "LP "
-                    )
+                    tier_rank_lp = f'{rankedrequest[x]["tier"]} {rankedrequest[x]["rank"]} {rankedrequest[x]["leaguePoints"]}LP '
                     message = tier_rank_lp
                     if "miniSeries" in rankedrequest[x]:
                         message += "| Promo: "
@@ -105,7 +98,7 @@ class League(commands.Cog):
         for x in range(3):
             champions = await utils.championid_to_champion(str(masteries[x]["championId"]))
             masterypoints = str(masteries[x]["championPoints"])
-            mastery_message += champions + " | " + masterypoints + "\n"
+            mastery_message += f'{champions} | {masterypoints}\n'
         matches_played = await apirequests.league(ctx, region, "match", "matchlists/by-account/", accountid + "?endIndex=1&beginIndex=0")
         embed = discord.Embed(title=name + "'s Profile on " + region.upper(), description=f'Summoner Level: {summonerlevel}',color=0xA9152B)
         embed.set_thumbnail(
@@ -162,15 +155,15 @@ class League(commands.Cog):
             summonerid = summonerInfo[2]
         clash_user_response = await apirequests.clash_user(ctx, region, summonerid)
         if clash_user_response == []:
-            await ctx.send(name + " is not in a Clash team at this time.")
+            await ctx.send(f'{name} is not in a Clash team at this time.')
             return
         clash_team_response = await apirequests.clash_team(ctx, region, clash_user_response[0]['teamId'])
         user_message = ""
         role_message = ""
         for x in range(len(clash_team_response['players'])):
             player_name = (await apirequests.league(ctx, region, "summoner", "summoners/", clash_team_response['players'][x]['summonerId']))['name']
-            user_message += player_name + '\n'
-            role_message += clash_team_response['players'][x]['position'] + '\n'
+            user_message += f'{player_name}\n'
+            role_message += f'{clash_team_response["players"][x]["position"]}\n'
         embed = discord.Embed(title="Clash Team: " + "[" + clash_team_response['abbreviation'] + "] " + clash_team_response['name'] , description = "Tier: " + str(clash_team_response['tier']), color=0xA9152B)
         embed.add_field(name="User", value=user_message, inline=True)
         embed.add_field(name="Role", value=role_message, inline=True)
