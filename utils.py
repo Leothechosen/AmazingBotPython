@@ -515,6 +515,16 @@ async def region_to_valid_server(region: str):
     }
     return switcher.get(region, "Invalid Server")
 
+async def division_to_number(division: str):
+    switcher = {
+        "I": 1,
+        "II": 2,
+        "III": 3,
+        "IV": 4,
+        "V": 5
+    }
+    return switcher.get(division, "error")
+
 async def spectategen(ctx, region, gameID, encryptionkey):
     server = await region_to_valid_server(region)
     if server == "Invalid Server":
