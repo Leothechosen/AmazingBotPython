@@ -184,7 +184,15 @@ class Misc(commands.Cog):
         embed.add_field(name="Date User Joined the Server", value=user.joined_at.strftime("%Y-%m-%d"), inline=False)
         embed.add_field(name="User's ID", value = user.id, inline=False)
         await ctx.send(embed=embed)
-
+    
+    @commands.command(name="bugreport", aliases=["bug"])    
+    async def bug_report(self, ctx, *args):
+        if args == ():
+            await ctx.send("Usage: `-bugreport [message]`")
+            return
+        owner = self.bot.get_user(122919363656286212)
+        await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
+        await ctx.send("Your report has been sent, thank you.")
 
     @tasks.loop(minutes=1.0)
     async def theserverTime(self):
