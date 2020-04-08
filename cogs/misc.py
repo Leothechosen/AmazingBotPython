@@ -19,7 +19,7 @@ servertimechannel = int(os.getenv("SERVER_TIME_CHANNEL"))
 class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.theserverTime.start()
+        self.theserverTime.start() # pylint: disable=no-member
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -29,7 +29,7 @@ class Misc(commands.Cog):
     @commands.has_role("Moderators")
     async def restartservertime(self, ctx):
         await ctx.send("Restarting the clock...")
-        self.theserverTime.start()
+        self.theserverTime.start() # pylint: disable=no-member
     
     @commands.command(name="temp")
     async def temp(self, ctx, temper=None):
@@ -173,6 +173,18 @@ class Misc(commands.Cog):
         embed.set_footer(text="Folding@Home API updates once or twice a day.")
         await ctx.send(embed=embed)
         return
+    
+    @commands.command(name="user", aliases=["User"])
+    async def guild_user(self, ctx, user: discord.Member = None):
+        if user is None:
+            await ctx.send("Usage: `-user [@user]`")
+            return
+        embed = discord.Embed(title=f"{user}'s Information", color = 0xA9152B)
+        embed.add_field(name="Date User Created Account", value=user.created_at.strftime("%Y-%m-%d"), inline=False)
+        embed.add_field(name="Date User Joined the Server", value=user.joined_at.strftime("%Y-%m-%d"), inline=False)
+        embed.add_field(name="User's ID", value = user.id, inline=False)
+        await ctx.send(embed=embed)
+
 
     @tasks.loop(minutes=1.0)
     async def theserverTime(self):
