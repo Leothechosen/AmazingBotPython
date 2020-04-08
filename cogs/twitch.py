@@ -21,28 +21,27 @@ announcements = [
     "Don't knock him before you try him",
 ]
 
-
 class Twitch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.amazingStream.start()
+        self.streamlive = True
+        self.amazingStream.start() # pylint: disable=no-member
 
     @tasks.loop(minutes=1.0)
     async def amazingStream(self):
         announcementchannel = int(os.getenv("AMAZING_ANNOUNCEMENT_ID"))
-        streamlive = True  # Assume the stream is live
         announcementchannel = self.bot.get_channel(id=announcementchannel)
         twitchrequest = await apirequests.twitch(amazing)
         # If not live while code thinks stream is live
-        if twitchrequest["stream"] == None and streamlive == True:
-            streamlive = False
+        if twitchrequest["stream"] == None and self.streamlive == True:
+            self.streamlive = False
             logger.info("Amazing has gone offline")
         # If live while code thinks stream isn't live
-        elif twitchrequest["stream"] != None and streamlive == False:
+        elif twitchrequest["stream"] != None and self.streamlive == False:
             await announcementchannel.send(
                 "@everyone " + random.choice(announcements) + " https://www.twitch.tv/amazingx"
             )
-            streamlive = True
+            self.streamlive = True
             logger.info("Amazing has gone online")
 
 def setup(bot):
