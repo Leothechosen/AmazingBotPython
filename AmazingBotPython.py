@@ -1,6 +1,10 @@
 # AmazingBotPython.py
 
 import logging
+import os
+import discord
+from dotenv import load_dotenv
+from discord.ext import commands
 
 logging.basicConfig(
     filename="logging.log",
@@ -9,18 +13,12 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-
-import os
-import discord
-from dotenv import load_dotenv
-from discord.ext import commands
-
 logger = logging.getLogger("AmazingBot")
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 bot = commands.Bot(command_prefix="-")
-announcementchannel = None
+bot.remove_command('help')
 
 @bot.event
 async def on_connect():
