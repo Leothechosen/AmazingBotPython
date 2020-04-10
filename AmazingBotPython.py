@@ -21,6 +21,10 @@ bot = commands.Bot(command_prefix="-")
 bot.remove_command('help')
 
 @bot.event
+async def on_ready():
+    logger.info(f"AmazingBot connected to Discord | Discord.py Version {discord.__version__}")
+
+@bot.event
 async def on_connect():
     game = discord.Game("Created By Leo")
     await bot.change_presence(activity=game)

@@ -21,10 +21,6 @@ class Misc(commands.Cog):
         self.bot = bot
         self.theserverTime.start() # pylint: disable=no-member
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("AmazingBot connected to Discord")
-
     @commands.command(name="restartservertime")
     @commands.has_role("Moderators")
     async def restartservertime(self, ctx):
