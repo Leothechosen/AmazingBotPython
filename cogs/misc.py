@@ -191,8 +191,42 @@ class Misc(commands.Cog):
             await ctx.send("Usage: `-bugreport [message]`")
             return
         owner = self.bot.get_user(122919363656286212)
-        await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
+        if ctx.guild == None:
+            await owner.send(f"Error reported by {ctx.author} in a DM: {ctx.message.content}")
+        else:
+            await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
         await ctx.send("Your report has been sent, thank you.")
+
+    @commands.command(name="help")
+    async def help(self, ctx, subclass=None):
+        await ctx.send("""```
+-league
+    rank [summoner_name] [server]
+    profile [summoner_name] [server]
+    match [summoner_name] [server]
+    clash [summoner_name] [server]
+-lor
+    leaderboard [lor_region]
+-esports
+    standings [league]
+    team [team]
+    schedule [league or team]
+-prediction
+    pick
+    view
+    record
+    leaderboard
+-fah (Folding@Home)
+    team [team_id]
+    user [user_name or user_id]
+
+-poll [question], [answer1], [answer2], ..., [answer9], [time_in_seconds (Max: 300)]
+-temp [temperatureF/C/K]
+-8ball
+-avatar
+-sourcecode or github
+-bugreport [message]```""")
+
 
     @tasks.loop(minutes=1.0)
     async def theserverTime(self):
