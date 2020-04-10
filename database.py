@@ -66,6 +66,13 @@ async def createdb():
         summonerID text,
         puuid text
     );
+
+    CREATE TABLE RankedInfo (
+        summonerName text,
+        SoloDuo text,
+        Flex text,
+        TFT text
+    )
 	
 	INSERT INTO League(code, name) VALUES ("lcs", "LCS");
 	INSERT INTO League(code, name) VALUES ("lec", "LEC");
@@ -608,5 +615,31 @@ async def writeSummonerInfo(summonerInfo):
     conn.commit()
     conn.close()
 
+async def checkRankedInfo(summonerName):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT * FROM RankedInfo WHERE summonerName = ?", (summonerName,))
+    rankedInfo = c.fetchone()
+    conn.close()
+    return rankedInfo
 
-    
+async def writeRankedInfo(summonerName, rankedInfo):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT * From RankedInfo WHERE summonerName = ?", (summonerName,))
+    rankedInfoCheck = c.fetchone()
+    if rankedInfoCheck == None:
+        for x in range(len(rankedInfo)):
+            if rankedInfo[x]["queueType"] == "RANKED_SOLO_5x5":
+                c.execute("INSERT INTO RankedInfo (summonerName, RANKED_SOLO_5x5) VALUES (?, ?)", (summonerName, f'{rankedInfo[x]["tier"]} {rankedInfo[x]["rank"]} {rankedInfo[x]["leaguePoints"]}'))
+            elif rankedInfo[x]["queueType"] == "RANKED_FLEX_SR":
+                c.execute("INSERT INTO RankedInfo (summonerName, RANKED_FLEX_SR) VALUES (?, ?)", (summonerName, f'{rankedInfo[x]["tier"]} {rankedInfo[x]["rank"]} {rankedInfo[x]["leaguePoints"]}'))
+    else:
+        for x in range(len(rankedInfo)):
+            if rankedInfo[x]["queueType"] == "RANKED_SOLO_5x5":
+                c.execute("UPDATE RankedInfo SET RANKED_SOLO_5x5 = ? WHERE summonerName = ?", (f'{rankedInfo[x]["tier"]} {rankedInfo[x]["rank"]} {rankedInfo[x]["leaguePoints"]}', summonerName))
+            elif rankedInfo[x]["queueType"] == "RANKED_FLEX_SR":
+                c.execute("UPDATE RankedInfo SET RANKED_FLEX_SR = ? WHERE summonerName = ?", (f'{rankedInfo[x]["tier"]} {rankedInfo[x]["rank"]} {rankedInfo[x]["leaguePoints"]}', summonerName))
+            
+    conn.commit()
+    conn.close()
