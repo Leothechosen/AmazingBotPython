@@ -49,6 +49,18 @@ class League(commands.Cog):
                 await ctx.send(embed=embed)
                 return
             if rankedrequest != []:
+                oldRankInfo = await database.checkRankedInfo(name)
+                print(oldRankInfo)
+                old_solo_rank = "N/A"
+                old_flex_rank = "N/A"
+                #old_tft_rank = "N/A"
+                if oldRankInfo is not None:
+                    try:
+                        old_solo_rank = oldRankInfo[1] + "LP"
+                        old_flex_rank = oldRankInfo[2] + "LP"
+                        #old_tft_rank = oldRankInfo[3] + "LP"
+                    except:
+                        pass
                 for x in range(len(rankedrequest)):
                     tier_rank_lp = f'{rankedrequest[x]["tier"]} {rankedrequest[x]["rank"]} {rankedrequest[x]["leaguePoints"]}LP '
                     message = tier_rank_lp
@@ -63,11 +75,12 @@ class League(commands.Cog):
                             elif promo_game == "L":
                                 message += ":x:"
                     if rankedrequest[x]["queueType"] == "RANKED_SOLO_5x5":
-                        embed.add_field(name="Solo", value=message, inline=False)
+                        embed.add_field(name="Solo/Duo (Last Query -> Today)", value=f'{old_solo_rank} -> {message}', inline=False)
                     elif rankedrequest[x]["queueType"] == "RANKED_FLEX_SR":
-                        embed.add_field(name="Flex", value=message, inline=False)
+                        embed.add_field(name="Flex (Last Query -> Today)", value=f'{old_flex_rank} -> {message}', inline=False)
                     else:
                         continue
+                await database.writeRankedInfo(name, rankedrequest)
             # if tftrequest != []:
             # embed.add_field(name="TFT", value=tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP",inline=True)
             await ctx.send(embed=embed)
