@@ -182,6 +182,17 @@ class Misc(commands.Cog):
             await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
         await ctx.send("Your report has been sent, thank you.")
 
+    @commands.command(name="status")
+    @commands.is_owner()
+    async def status(self, ctx, status=None):
+        if status == None:
+            await self.bot.change_presence(activity=None)
+        elif status == "default":
+            await self.bot.change_presence(activity=discord.Game("Created by Leo"))
+        else:
+            await self.bot.change_presence(activity=discord.Game(status))
+        return
+
     @commands.command(name="help")
     async def help(self, ctx, subclass=None):
         await ctx.send("""```
