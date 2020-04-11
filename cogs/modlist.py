@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger("AmazingBot." + __name__)
 
 
-class Modlist(commands.Cog):
+class Modding(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -41,6 +41,16 @@ class Modlist(commands.Cog):
         modlist.close()
         return
 
-
+    @commands.command(name="user", aliases=["User"])
+    async def guild_user(self, ctx, user: discord.Member = None):
+        if user is None:
+            await ctx.send("Usage: `-user [@user]`")
+            return
+        embed = discord.Embed(title=f"{user}'s Information", color = 0xA9152B)
+        embed.add_field(name="Date User Created Account", value=user.created_at.strftime("%Y-%m-%d"), inline=False)
+        embed.add_field(name="Date User Joined the Server", value=user.joined_at.strftime("%Y-%m-%d"), inline=False)
+        embed.add_field(name="User's ID", value = user.id, inline=False)
+        await ctx.send(embed=embed)
+        
 def setup(bot):
-    bot.add_cog(Modlist(bot))
+    bot.add_cog(Modding(bot))
