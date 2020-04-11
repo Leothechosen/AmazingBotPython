@@ -38,7 +38,7 @@ class League(commands.Cog):
             summonerInfo = await database.checkSummonerInfo(name)
             if summonerInfo is None:
                 summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
-                await database.writeSummonerInfo(summoneridrequest)
+                await database.writeSummonerInfo(name, summoneridrequest)
                 summonerid = summoneridrequest["id"]
             else:
                 summonerid = summonerInfo[2]
@@ -162,7 +162,7 @@ class League(commands.Cog):
         summonerInfo = await database.checkSummonerInfo(name)
         if summonerInfo is None:
             summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
-            await database.writeSummonerInfo(summoneridrequest)
+            await database.writeSummonerInfo(name, summoneridrequest)
             summonerid = summoneridrequest["id"]
         else:
             summonerid = summonerInfo[2]
@@ -199,7 +199,7 @@ class League(commands.Cog):
         summonerInfo = await database.checkSummonerInfo(name)
         if summonerInfo is None:
             summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
-            await database.writeSummonerInfo(summoneridrequest)
+            await database.writeSummonerInfo(name, summoneridrequest)
             summonerid = summoneridrequest["id"]
         else:
             summonerid = summonerInfo[2]

@@ -603,22 +603,22 @@ async def fetchLeaderboard(league):
 async def checkSummonerInfo(summonerName):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
-    c.execute("SELECT * FROM RiotUserInfo WHERE summonerName = ?", (summonerName,))
+    c.execute("SELECT * FROM RiotUserInfo WHERE summonerName = ? COLLATE NOCASE", (summonerName,))
     summonerInfo = c.fetchone()
     conn.close()
     return summonerInfo
 
-async def writeSummonerInfo(summonerInfo):
+async def writeSummonerInfo(summonerName, summonerInfo):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
-    c.execute("INSERT INTO RiotUserInfo (accountID, summonerName, summonerID, puuid) VALUES (?, ?, ?, ?)", (summonerInfo["accountId"], summonerInfo["name"], summonerInfo["id"], summonerInfo["puuid"]))
+    c.execute("INSERT INTO RiotUserInfo (accountID, summonerName, summonerID, puuid) VALUES (?, ?, ?, ?)", (summonerInfo["accountId"], summonerName, summonerInfo["id"], summonerInfo["puuid"]))
     conn.commit()
     conn.close()
 
 async def checkRankedInfo(summonerName):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
-    c.execute("SELECT * FROM RankedInfo WHERE summonerName = ?", (summonerName,))
+    c.execute("SELECT * FROM RankedInfo WHERE summonerName = ? COLLATE NOCASE", (summonerName,))
     rankedInfo = c.fetchone()
     conn.close()
     return rankedInfo
@@ -626,7 +626,7 @@ async def checkRankedInfo(summonerName):
 async def writeRankedInfo(summonerName, rankedInfo):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
-    c.execute("SELECT * From RankedInfo WHERE summonerName = ?", (summonerName,))
+    c.execute("SELECT * From RankedInfo WHERE summonerName = ? COLLATE NOCASE", (summonerName,))
     rankedInfoCheck = c.fetchone()
     if rankedInfoCheck == None:
         for x in range(len(rankedInfo)):
