@@ -170,17 +170,6 @@ class Misc(commands.Cog):
         await ctx.send(embed=embed)
         return
     
-    @commands.command(name="user", aliases=["User"])
-    async def guild_user(self, ctx, user: discord.Member = None):
-        if user is None:
-            await ctx.send("Usage: `-user [@user]`")
-            return
-        embed = discord.Embed(title=f"{user}'s Information", color = 0xA9152B)
-        embed.add_field(name="Date User Created Account", value=user.created_at.strftime("%Y-%m-%d"), inline=False)
-        embed.add_field(name="Date User Joined the Server", value=user.joined_at.strftime("%Y-%m-%d"), inline=False)
-        embed.add_field(name="User's ID", value = user.id, inline=False)
-        await ctx.send(embed=embed)
-    
     @commands.command(name="bugreport", aliases=["bug"])    
     async def bug_report(self, ctx, *args):
         if args == ():
