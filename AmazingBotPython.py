@@ -17,7 +17,7 @@ logger = logging.getLogger("AmazingBot")
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
-bot = commands.Bot(command_prefix="-")
+bot = commands.Bot(command_prefix="-", owner_id=122919363656286212)
 bot.remove_command('help')
 
 @bot.event
@@ -29,12 +29,18 @@ async def on_connect():
     game = discord.Game("Created By Leo")
     await bot.change_presence(activity=game)
 
-
 @bot.event
 async def on_command(ctx):
     logger.info(f' Message {ctx.message.content} - User: {ctx.message.author}')
     await ctx.trigger_typing()
     return
+
+@bot.event
+async def on_command_error(ctx, error):
+    logger.error(f'Error in {ctx.command}')
+    logger.error(f'{error}')
+    owner = bot.get_user(bot.owner_id)
+    await owner.send(f'Error in {ctx.command}\n{error}')
 
 
 @bot.command()
