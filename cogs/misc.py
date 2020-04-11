@@ -175,7 +175,7 @@ class Misc(commands.Cog):
         if args == ():
             await ctx.send("Usage: `-bugreport [message]`")
             return
-        owner = self.bot.get_user(122919363656286212)
+        owner = self.bot.get_user(self.bot.owner_id)
         if ctx.guild == None:
             await owner.send(f"Error reported by {ctx.author} in a DM: {ctx.message.content}")
         else:
