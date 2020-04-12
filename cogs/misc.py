@@ -193,6 +193,13 @@ class Misc(commands.Cog):
             await self.bot.change_presence(activity=discord.Game(status))
         return
 
+    @commands.command(name="botinfo")
+    async def botinfo(self, ctx):
+        embed = discord.Embed(title="AmazingBot Info", color=0xA9152B)
+        embed.add_field(name="Created By", value="Leo឵#8788", inline=True)
+        embed.add_field(name="Uptime", value= str(datetime.now() - self.bot.uptimeStart)[:-7], inline = True)
+        await ctx.send(embed=embed)
+
     @commands.command(name="help")
     async def help(self, ctx, subclass=None):
         await ctx.send("""```
