@@ -28,12 +28,16 @@ Commands (Prefix is -) :
 9. avatar
 10. sourcecode or github
 11. bugreport or bug [message]
+12. suggestion [message]
+13. botinfo
+14. serverinfo
 
 
 To-Do:
 - Expand Legends Of Runeterra when more API endpoints are released.
 - Add Valorant group when API endpoints are released.
 - If the Discord server becomes large enough and there's interest in it, generate a XvsX Tournament with community members.
+- Rewrite code to be multi-server friendly where needed
 
 Thanks to Curlybear for being a big help.
 
