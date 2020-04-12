@@ -3,6 +3,7 @@
 import logging
 import os
 import discord
+from datetime import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -19,6 +20,7 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 bot = commands.Bot(command_prefix="-", owner_id=122919363656286212)
 bot.remove_command('help')
+bot.uptimeStart = datetime.now()
 
 @bot.event
 async def on_ready():
