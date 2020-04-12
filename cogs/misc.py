@@ -181,6 +181,18 @@ class Misc(commands.Cog):
         else:
             await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
         await ctx.send("Your report has been sent, thank you.")
+    
+    @commands.command(name="suggestion")
+    async def suggestion(self, ctx, *args):
+        if args == ():
+            await ctx.send("Usage: `-suggestion [message]`")
+            return
+        owner = self.bot.get_user(self.bot.owner_id)
+        if ctx.guild == None:
+            await owner.send(f"Suggestion from {ctx.authour} in a DM: {ctx.message.content}")
+        else:
+            await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
+        await ctx.send("Your suggestion has been sent, thank you.")
 
     @commands.command(name="status")
     @commands.is_owner()
@@ -196,9 +208,34 @@ class Misc(commands.Cog):
     @commands.command(name="botinfo")
     async def botinfo(self, ctx):
         embed = discord.Embed(title="AmazingBot Info", color=0xA9152B)
-        embed.add_field(name="Created By", value="Leo឵#8788", inline=True)
         embed.add_field(name="Uptime", value= str(datetime.now() - self.bot.uptimeStart)[:-7], inline = True)
+        embed.add_field(name="Created On", value = "2019-12-28", inline=True)
+        embed.add_field(name="** **", value = "** **", inline=True)
+        embed.add_field(name="Guilds Serving", value = len(self.bot.guilds), inline=True)
+        embed.add_field(name="Users Serving", value = len(self.bot.users), inline=True)
+        embed.add_field(name="** **", value = "** **", inline=True)
+        embed.add_field(name="Bot Invite Link", value="https://discordapp.com/api/oauth2/authorize?client_id=660329366940680227&permissions=8&scope=bot", inline=True)
+        embed.set_footer(text="Created By Leo឵#8788", icon_url="https://i.imgur.com/SGmbIdj.png")
+        embed.set_thumbnail(url="https://i.imgur.com/TwEsQ4D.png")
         await ctx.send(embed=embed)
+
+    @commands.command(name="serverinfo")
+    async def serverinfo(self, ctx):
+        features = [f'{feature}\n' for feature in ctx.guild.features]
+        logger.info(ctx.guild.icon)
+        embed = discord.Embed(title=f"{ctx.guild.name}'s Info", color = 0xA9152B)
+        embed.add_field(name="Region", value=str(ctx.guild.region).title(), inline=True)
+        embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
+        embed.add_field(name="Created On", value=str(ctx.guild.created_at)[:-7], inline=True)
+        embed.add_field(name="Featuers", value = f"{features}", inline=True)
+        embed.add_field(name="# of Members", value=f"{ctx.guild.member_count}", inline=True)
+        embed.add_field(name="# of Boosts", value=f"{ctx.guild.premium_subscription_count}", inline=True)
+        try:
+            embed.set_thumbnail(url=ctx.guild.icon_url_as(format="png"))
+        except:
+            pass
+        await ctx.send(embed=embed)
+
 
     @commands.command(name="help")
     async def help(self, ctx, subclass=None):
