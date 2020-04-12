@@ -13,13 +13,13 @@ class Lor(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def lor(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are leaderboard")
         return
 
-    @lor.command(pass_context=True)
+    @lor.command()
     async def leaderboard(self, ctx, region=None):
         leaderboard_message = ""
         rank_message = ""

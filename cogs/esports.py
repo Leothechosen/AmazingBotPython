@@ -14,13 +14,13 @@ class eSports(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(pass_context=True, help="Subcommands: standings and team")
+    @commands.group()
     async def esports(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are standings, team and schedule. See pinned message for usage.")
         return
 
-    @esports.command(pass_context=True)
+    @esports.command()
     async def standings(self, ctx, tournament=None):
         if tournament == None:
             await ctx.send(
@@ -52,7 +52,7 @@ class eSports(commands.Cog):
         embed.add_field(name="Record", value=records_message, inline=True)
         await ctx.send(embed=embed)
 
-    @esports.command(pass_context=True)
+    @esports.command()
     async def schedule(self, ctx, league=None, team=None):
         schedule_message = ""
         teams1_message = ""
@@ -133,7 +133,7 @@ class eSports(commands.Cog):
             embed.set_thumbnail(url=thumbnail)
         await ctx.send(embed=embed)
 
-    @esports.command(pass_context=True)
+    @esports.command()
     async def team(self, ctx, team=None):
         role_message = ""
         name_message = ""

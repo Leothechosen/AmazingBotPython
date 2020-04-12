@@ -14,13 +14,13 @@ class League(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(pass_context=True, aliases=["League"])
+    @commands.group(aliases=["League"])
     async def league(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are rank, profile, and clash")
         return
 
-    @league.command(pass_context=True, aliases=["Rank"])
+    @league.command(aliases=["Rank"])
     async def rank(self, ctx, name=None, region=None):
         if name == None:
             await ctx.send(
@@ -86,7 +86,7 @@ class League(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-    @league.command(pass_context=True, aliases=["Profile"])
+    @league.command(aliases=["Profile"])
     async def profile(self, ctx, name=None, region=None):
         mastery_message = ""
         profileicon = ""
@@ -147,7 +147,7 @@ class League(commands.Cog):
         await ctx.send(embed=embed)
         return
 
-    @league.command(pass_context=True, aliases=["Clash"])
+    @league.command(aliases=["Clash"])
     async def clash(self, ctx, name=None, region=None):
         if name == None:
             await ctx.send("Usage: `-league clash [user_name]`")
@@ -184,7 +184,7 @@ class League(commands.Cog):
         await ctx.send(embed=embed)
         return
 
-    @league.command(pass_context=True, aliases=["Match"])
+    @league.command(aliases=["Match"])
     async def match(self, ctx, name=None, region=None):
         if name == None:
             await ctx.send("Usage: `-league match [user_name]")

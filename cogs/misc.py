@@ -125,13 +125,13 @@ class Misc(commands.Cog):
             logging.error(e)
             return
     
-    @commands.group(pass_context=True)
+    @commands.group()
     async def fah(self, ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are team and user. See pinned message for usage.")
         return
     
-    @fah.command(pass_context=True)
+    @fah.command()
     async def team(self, ctx, team=None):
         if team is None:
             await ctx.send("Usage: `-fah team [team_id]`. Amazingx Community's team id is 242203")
@@ -155,7 +155,7 @@ class Misc(commands.Cog):
         await ctx.send(embed=embed)
         return
     
-    @fah.command(pass_context=True)
+    @fah.command()
     async def user(self, ctx, user=None):
         if user is None:
             await ctx.send("Usage: `-fah user [user_name]`")

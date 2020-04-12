@@ -23,7 +23,7 @@ class Predictions(commands.Cog):
         importlib.reload(db)
         await ctx.send("DB Cache refreshed")
 
-    @commands.group(pass_context=True, aliases=["Prediction", "predictions"])
+    @commands.group(aliases=["Prediction", "predictions"])
     async def prediction(self, ctx):
         await db.checkdiscord(ctx)
         if self.updating == False:

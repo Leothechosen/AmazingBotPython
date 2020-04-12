@@ -12,7 +12,7 @@ class Modding(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(pass_context=True)
+    @commands.group()
     @commands.has_role("Moderators")
     async def modlist(self, ctx):
         if ctx.invoked_subcommand is None:
@@ -21,7 +21,7 @@ class Modding(commands.Cog):
             modlist.close()
         return
 
-    @modlist.command(pass_context=True)
+    @modlist.command()
     async def add(self, ctx, name=None):
         modlist = open(modlist_file, "a")
         modlist.write(name + "\n")
@@ -29,7 +29,7 @@ class Modding(commands.Cog):
         await ctx.send("Addition successful")
         return
 
-    @modlist.command(pass_context=True)
+    @modlist.command()
     async def remove(self, ctx, name=None):
         modlist = open(modlist_file, "r")
         names = modlist.readlines()
