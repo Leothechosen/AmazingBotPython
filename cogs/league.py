@@ -50,7 +50,6 @@ class League(commands.Cog):
                 return
             if rankedrequest != []:
                 oldRankInfo = await database.checkRankedInfo(name)
-                print(oldRankInfo)
                 old_solo_rank = "N/A"
                 old_flex_rank = "N/A"
                 #old_tft_rank = "N/A"
