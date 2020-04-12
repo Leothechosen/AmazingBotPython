@@ -189,9 +189,9 @@ class Misc(commands.Cog):
             return
         owner = self.bot.get_user(self.bot.owner_id)
         if ctx.guild == None:
-            await owner.send(f"Suggestion from {ctx.authour} in a DM: {ctx.message.content}")
+            await owner.send(f"Suggestion from {ctx.author} in a DM: {ctx.message.content}")
         else:
-            await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
+            await owner.send(f"Suggestion by {ctx.author} in {ctx.guild}: {ctx.message.content}")
         await ctx.send("Your suggestion has been sent, thank you.")
 
     @commands.command(name="status")
