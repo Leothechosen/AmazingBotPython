@@ -44,6 +44,14 @@ async def on_command_error(ctx, error):
     owner = bot.get_user(bot.owner_id)
     await owner.send(f'Error in {ctx.command}\n{error}')
 
+@bot.event
+async def on_guild_join(guild):
+    logger.info(f'AmazingBot has joined "{guild.name}"" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id} | # of members: {len(guild.members)}')
+
+@bot.event
+async def on_guild_remove(guild):
+    logger.info(f'AmazingBot was removed from "{guild.name}" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id}')
+
 
 @bot.command()
 @commands.is_owner()
