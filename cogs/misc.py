@@ -231,7 +231,10 @@ class Misc(commands.Cog):
         embed.add_field(name="# of Members", value=f"{ctx.guild.member_count}", inline=True)
         embed.add_field(name="# of Boosts", value=f"{ctx.guild.premium_subscription_count}", inline=True)
         try:
-            embed.set_thumbnail(url=ctx.guild.icon_url_as(format="png"))
+            if ctx.guild.is_icon_animated():    
+                embed.set_thumbnail(url=ctx.guild.icon_url_as(format="gif"))
+            else:
+                embed.set_thumbnail(url=ctx.guild.icon_url_as(format="png"))
         except:
             pass
         await ctx.send(embed=embed)
