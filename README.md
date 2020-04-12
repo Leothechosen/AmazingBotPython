@@ -1,6 +1,7 @@
 # AmazingBot
 
 This is a Discord Bot for League of Legends former pro player Amazing's Discord Server. https://discord.gg/rmurNhS
+Invite AmazingBot to your server: https://discordapp.com/api/oauth2/authorize?client_id=660329366940680227&permissions=8&scope=bot
 
 Commands (Prefix is -) :
 1. league
