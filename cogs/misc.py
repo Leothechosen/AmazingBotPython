@@ -268,7 +268,10 @@ class Misc(commands.Cog):
 -8ball
 -avatar
 -sourcecode or github
--bugreport [message]```""")
+-bugreport [message]
+-suggestion [message]
+-botinfo
+-serverinfo```""")
 
 
     @tasks.loop(minutes=1.0)
