@@ -2,6 +2,7 @@ import discord
 import asyncio
 import os
 import utils
+import pytz
 from pytz import timezone
 from datetime import datetime, timedelta
 from discord.ext import commands, tasks
@@ -9,6 +10,7 @@ from dotenv import load_dotenv
 import apirequests
 import logging
 import random
+import database
 
 logger = logging.getLogger("AmazingBot." + __name__)
 load_dotenv()
@@ -263,6 +265,8 @@ class Misc(commands.Cog):
     team [team_id]
     user [user_name or user_id]
 
+-servertime [channel_id] [timezone] (Set a channel to display the server's local timezone via channel name)
+
 -poll [question], [answer1], [answer2], ..., [answer9], [time_in_seconds (Max: 300)]
 -temp [temperatureF/C/K]
 -8ball
@@ -273,17 +277,40 @@ class Misc(commands.Cog):
 -botinfo
 -serverinfo```""")
 
+    @commands.command(name="servertime")
+    @commands.has_guild_permissions(administrator=True)
+    async def servertime(self, ctx, channel_id=None, timezone=None):
+        if channel_id == None and timezone == None:
+            await ctx.send("To set a channel to display Server Time: `-servertime [channel_id] [timezone]`\nTo delete your Server Time settings: `-servertime delete`\nValid timezones: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
+        elif channel_id == "delete":
+            await database.writeGuildSettings(ctx.guild.id, None, None)
+            await ctx.send("Your settings have been deleted. To set them again, do `-servertime [channel_id] [timezone]`")
+        elif timezone == None:
+            await ctx.send("You must specify a timezone. See here for valid timezones: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
+        elif timezone not in pytz.all_timezones:
+            await ctx.send("You have entered an invalid timezone. See here for valid timezones: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
+        else:
+            channel_for_servertime = self.bot.get_channel(id=int(channel_id))
+            if channel_for_servertime is not None:
+                await database.writeGuildSettings(ctx.guild.id, channel_id, timezone)
+                await ctx.send("Settings saved.")
+            else:
+                await ctx.send("The id provided is not valid. Check the desired channel's ID again.")
+        return
 
     @tasks.loop(minutes=1.0)
     async def theserverTime(self):
-        try:
-            fmt = "%H:%M %Z"
-            servertime = self.bot.get_channel(id=servertimechannel)
-            berlin = datetime.now(timezone("CET"))
-            berlin = berlin.strftime(fmt)
-            await servertime.edit(name=berlin)
-        except:
-            logger.exception("Server Time Error")
+        allGuildSettings = await database.getAllGuildSettings()
+        fmt = "%H:%M %Z"
+        for guild in allGuildSettings:
+            try:
+                if guild[1] is not None:
+                    channel_for_servertime = self.bot.get_channel(id=guild[1])
+                    serverTime = datetime.now(timezone(guild[2]))
+                    serverTime = serverTime.strftime(fmt)
+                    await channel_for_servertime.edit(name=serverTime)
+            except:
+                logger.exception("Server Time Error")
     
     @theserverTime.before_loop
     async def before_theserverTime(self):
