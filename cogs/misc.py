@@ -225,11 +225,12 @@ class Misc(commands.Cog):
     async def serverinfo(self, ctx):
         features = [f'{feature}\n' for feature in ctx.guild.features]
         logger.info(ctx.guild.icon)
-        embed = discord.Embed(title=f"{ctx.guild.name}'s Info", color = 0xA9152B)
+        prefix = await database.getGuildPrefix(ctx.guild.id)
+        embed = discord.Embed(title=f"{ctx.guild.name}'s Info", description=f"Server prefix: {prefix[0]}", color = 0xA9152B)
         embed.add_field(name="Region", value=str(ctx.guild.region).title(), inline=True)
         embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
         embed.add_field(name="Created On", value=str(ctx.guild.created_at)[:-7], inline=True)
-        embed.add_field(name="Featuers", value = f"{features}", inline=True)
+        embed.add_field(name="Features", value = f"{features}", inline=True)
         embed.add_field(name="# of Members", value=f"{ctx.guild.member_count}", inline=True)
         embed.add_field(name="# of Boosts", value=f"{ctx.guild.premium_subscription_count}", inline=True)
         try:
@@ -274,7 +275,9 @@ class Misc(commands.Cog):
 -botinfo
 -serverinfo
 
-Admin only: -servertime [channel_id] [timezone] (Set a channel to display the server's local timezone via channel name)```""")
+Admin only commands: 
+-servertime [channel_id] [timezone] (Set a channel to display the server's local timezone via channel name)
+-prefix [new_prefix] (Set a new prefix for the bot to respond to) ```""")
 
     @commands.command(name="servertime")
     @commands.has_guild_permissions(administrator=True)
@@ -295,6 +298,16 @@ Admin only: -servertime [channel_id] [timezone] (Set a channel to display the se
                 await ctx.send("Settings saved.")
             else:
                 await ctx.send("The id provided is not valid. Check the desired channel's ID again.")
+        return
+
+    @commands.command(name="prefix")
+    @commands.has_guild_permissions(administrator=True)
+    async def prefix(self, ctx, new_prefix = None):
+        if new_prefix is None:
+            await ctx.send("Usage: `-prefix [new_prefix]`")
+            return
+        await database.writeGuildPrefix(ctx.guild.id, new_prefix)
+        await ctx.send(f"Setting saved. Your new prefix is {new_prefix}")
         return
 
     @tasks.loop(minutes=1.0)

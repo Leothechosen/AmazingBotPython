@@ -3,6 +3,7 @@
 import logging
 import os
 import discord
+import database
 from datetime import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -18,7 +19,14 @@ logger = logging.getLogger("AmazingBot")
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
-bot = commands.Bot(command_prefix="-", owner_id=122919363656286212)
+async def get_prefix(bot, message):
+    prefix = await database.getGuildPrefix(message.guild.id)
+    if prefix is None:
+        return "-"
+    else:
+        return prefix[0]
+
+bot = commands.Bot(command_prefix=get_prefix, owner_id=122919363656286212)
 bot.remove_command('help')
 bot.uptimeStart = datetime.now()
 
@@ -40,6 +48,9 @@ async def on_command(ctx):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CommandNotFound):
+        return
+    if isinstance(error, commands.errors.MissingPermissions):
+        await ctx.send("You do not have the proper Permissions to use this command.")
         return
     logger.error(f'Error in {ctx.command}')
     logger.error(f'{error}')

@@ -677,3 +677,24 @@ async def writeGuildSettings(guild_id:int, channel_id:int, timezone:str):
     conn.commit()
     conn.close()
     return
+
+async def getGuildPrefix(guild_id):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT prefix FROM GuildSettings WHERE guild_id = ?", (guild_id,))
+    prefix = c.fetchone()
+    conn.close()
+    return prefix
+
+async def writeGuildPrefix(guild_id:int, new_prefix:str):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT * From GuildSettings WHERE guild_id = ?", (guild_id,))
+    guild_check = c.fetchone()
+    if guild_check is None:
+        c.execute("INSERT INTO GuildSettings (guild_id, prefix) VALUES (?, ?)", (guild_id, new_prefix))
+    else:
+        c.execute("UPDATE GuildSettings SET prefix = ? WHERE guild_id = ?", (new_prefix, guild_id))
+    conn.commit()
+    conn.close()
+    return
