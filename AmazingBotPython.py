@@ -27,7 +27,6 @@ async def get_prefix(bot, message):
         return prefix[0]
 
 bot = commands.Bot(command_prefix=get_prefix, owner_id=122919363656286212)
-bot.remove_command('help')
 bot.uptimeStart = datetime.now()
 
 @bot.event
@@ -52,8 +51,10 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.MissingPermissions):
         await ctx.send("You do not have the proper Permissions to use this command.")
         return
-    logger.error(f'Error in {ctx.command}')
-    logger.error(f'{error}')
+    if isinstance(error, commands.errors.MissingRequiredArgument):
+        await ctx.send(f"You are missing required parameters. Use `-help {ctx.invoked_with}` to check what is required.")
+        return
+    logger.exception(f"Error in {ctx.command}")
     owner = bot.get_user(bot.owner_id)
     await owner.send(f'Error in {ctx.command}\n{error}')
 
@@ -66,23 +67,26 @@ async def on_guild_remove(guild):
     logger.info(f'AmazingBot was removed from "{guild.name}" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id}')
 
 
-@bot.command()
+@bot.command(hidden=True)
 @commands.is_owner()
 async def load(ctx, extension):
+    """Owner Only | Loads a cog"""
     bot.load_extension(f"cogs.{extension}")
     await ctx.send(f"{extension} loaded")
 
 
-@bot.command()
+@bot.command(hidden=True)
 @commands.is_owner()
 async def unload(ctx, extension):
+    """Owner Only | Unloads a cog"""
     bot.unload_extension(f"cogs.{extension}")
     await ctx.send(f"{extension} unloaded")
 
 
-@bot.command()
+@bot.command(hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
+    """Owner Only | Reloads a cog"""
     bot.unload_extension(f"cogs.{extension}")
     bot.load_extension(f"cogs.{extension}")
     await ctx.send(f"{extension} reloaded")
@@ -90,6 +94,7 @@ async def reload(ctx, extension):
 
 @bot.command()
 async def ping(ctx):
+    """Pong"""
     await ctx.send("Pong")
     return
 
