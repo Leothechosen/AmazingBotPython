@@ -26,19 +26,16 @@ class Misc(commands.Cog):
     @commands.command(name="restartservertime")
     @commands.has_role("Moderators")
     async def restartservertime(self, ctx):
+        """Moderator only. Restarts the Server Time Task"""
         await ctx.send("Restarting the clock...")
         self.theserverTime.start() # pylint: disable=no-member
     
     @commands.command(name="temp")
-    async def temp(self, ctx, temper=None):
-        if temper == None:
-            await ctx.send("Usage: -temp [temperature]. For example: -temp 14F will return -10C")
-            return
+    async def temp(self, ctx, temperature_and_unit):
+        """Returns a given temperature in the other two common units. Example: `-temp 32F` returns `32F = 0C = 273.15K`"""
         try:
-            tempunit = temper[-1].upper()
-            temper = temper[:-1]
-            print(tempunit)
-            print(temper)
+            tempunit = temperature_and_unit[-1].upper()
+            temper = temperature_and_unit[:-1]
             if tempunit == "F":
                 tempC = (float(temper) - 32) * (5 / 9)
                 tempK = tempC + 273.15
@@ -60,6 +57,7 @@ class Misc(commands.Cog):
 
     @commands.command(name="avatar")
     async def avatar(self, ctx):
+        """Returns the fullsize version of the bot's avatar, made by `@owocifer` on twitter"""
         embed = discord.Embed(title="Avatar", color=0xA9152B)
         embed.set_image(url="https://i.imgur.com/TwEsQ4D.png")
         embed.add_field(
@@ -72,19 +70,14 @@ class Misc(commands.Cog):
 
     @commands.command(name="playlist")
     async def playlist(self, ctx):
+        """Returns a link to Amazing's stream playlist"""
         await ctx.send(
             "Maurice's stream playlist can be found here: https://open.spotify.com/playlist/3Ae9kHY7VgXTg6KwsbWVnn?si=gVNIAIuDSyWFb2ZULr-hZQ "
         )
 
-    @commands.command(name="embedtest")
-    @commands.is_owner()
-    async def embedtest(self, ctx):
-        discord_embed = await utils.embedgen(ctx)
-        embed = discord.Embed.from_dict(discord_embed)
-        await ctx.send(embed=embed)
-
     @commands.command(name="8ball")
     async def eight_ball(self, ctx):
+        """Returns a classic 8ball response"""
         responses = [
             "As I see it, yes.",
             "Ask again later.",
@@ -111,6 +104,7 @@ class Misc(commands.Cog):
 
     @commands.command(name="sourcecode", aliases=["github"])
     async def sourcecode(self, ctx):
+        """Returns a link to AmazingBot's github"""
         try:
             githubrequest = await apirequests.github()
             last_commit_time = str(
@@ -129,15 +123,14 @@ class Misc(commands.Cog):
     
     @commands.group()
     async def fah(self, ctx):
+        """Folding@Home | Subcommands are team and user"""
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are team and user. See pinned message for usage.")
         return
     
     @fah.command()
-    async def team(self, ctx, team=None):
-        if team is None:
-            await ctx.send("Usage: `-fah team [team_id]`. Amazingx Community's team id is 242203")
-            return
+    async def team(self, ctx, team):
+        """Returns information on the given team. Amazing's team code is 242203"""
         teamresponse = await apirequests.foldingathome(ctx, "team", team)
         user_message = ""
         credit_message = ""
@@ -158,10 +151,8 @@ class Misc(commands.Cog):
         return
     
     @fah.command()
-    async def user(self, ctx, user=None):
-        if user is None:
-            await ctx.send("Usage: `-fah user [user_name]`")
-            return
+    async def user(self, ctx, user):
+        """Returns information on the given user"""
         userresponse = await apirequests.foldingathome(ctx, "donor", user)
         stats_name_message = "Work Units" + '\n' + "Rank" + '\n' + "Date of Last WU" + '\n' + "Credits"
         stats_message = str(userresponse["wus"]) + '\n' + str(userresponse["rank"]) + '\n' + str(userresponse["last"]) + '\n' + str(userresponse["credit"])
@@ -174,6 +165,7 @@ class Misc(commands.Cog):
     
     @commands.command(name="bugreport", aliases=["bug"])    
     async def bug_report(self, ctx, *args):
+        """If you see what you believe to be unintentional behavior, please report it through this command"""
         if args == ():
             await ctx.send("Usage: `-bugreport [message]`")
             return
@@ -186,6 +178,7 @@ class Misc(commands.Cog):
     
     @commands.command(name="suggestion")
     async def suggestion(self, ctx, *args):
+        """If you have a suggestion on what else this bot should do, send it through this command"""
         if args == ():
             await ctx.send("Usage: `-suggestion [message]`")
             return
@@ -196,9 +189,10 @@ class Misc(commands.Cog):
             await owner.send(f"Suggestion by {ctx.author} in {ctx.guild}: {ctx.message.content}")
         await ctx.send("Your suggestion has been sent, thank you.")
 
-    @commands.command(name="status")
+    @commands.command(name="status", hidden=True)
     @commands.is_owner()
     async def status(self, ctx, status=None):
+        """Owner Only | Sets the bot's status in Discord"""
         if status == None:
             await self.bot.change_presence(activity=None)
         elif status == "default":
@@ -209,6 +203,7 @@ class Misc(commands.Cog):
 
     @commands.command(name="botinfo")
     async def botinfo(self, ctx):
+        """Returns some of AmazingBot's information"""
         embed = discord.Embed(title="AmazingBot Info", color=0xA9152B)
         embed.add_field(name="Uptime", value= str(datetime.now() - self.bot.uptimeStart)[:-7], inline = True)
         embed.add_field(name="Created On", value = "2019-12-28", inline=True)
@@ -223,6 +218,7 @@ class Misc(commands.Cog):
 
     @commands.command(name="serverinfo")
     async def serverinfo(self, ctx):
+        """Returns some of the server's information"""
         features = [f'{feature}\n' for feature in ctx.guild.features]
         logger.info(ctx.guild.icon)
         prefix = await database.getGuildPrefix(ctx.guild.id)
@@ -241,44 +237,6 @@ class Misc(commands.Cog):
         except:
             pass
         await ctx.send(embed=embed)
-
-
-    @commands.command(name="help")
-    async def help(self, ctx, subclass=None):
-        await ctx.send("""```
--league
-    rank [summoner_name] [server]
-    profile [summoner_name] [server]
-    match [summoner_name] [server]
-    clash [summoner_name] [server]
--lor
-    leaderboard [lor_region]
--esports
-    standings [league]
-    team [team]
-    schedule [league or team]
--prediction
-    pick
-    view
-    record
-    leaderboard
--fah (Folding@Home)
-    team [team_id]
-    user [user_name or user_id]
--poll [question], [answer1], [answer2], ..., [answer9], [time_in_seconds (Max: 300)]
--temp [temperatureF/C/K]
--8ball
--avatar
--sourcecode or github
--bugreport [message]
--suggestion [message]
--botinfo
--serverinfo
-
-Admin only commands: 
--servertime [channel_id] [timezone] (Set a channel to display the server's local timezone via channel name)
--prefix [new_prefix] (Set a new prefix for the bot to respond to) ```""")
-
 
     @tasks.loop(minutes=1.0)
     async def theserverTime(self):

@@ -15,6 +15,7 @@ class Modding(commands.Cog):
     @commands.group()
     @commands.has_role("Moderators")
     async def modlist(self, ctx):
+        """Moderator Only | Subcommands are add and remove"""
         if ctx.invoked_subcommand is None:
             modlist = open(modlist_file, "r")
             await ctx.send(modlist.read())
@@ -22,7 +23,8 @@ class Modding(commands.Cog):
         return
 
     @modlist.command()
-    async def add(self, ctx, name=None):
+    async def add(self, ctx, name):
+        """Adds person to the modlist"""
         modlist = open(modlist_file, "a")
         modlist.write(name + "\n")
         modlist.close()
@@ -30,7 +32,8 @@ class Modding(commands.Cog):
         return
 
     @modlist.command()
-    async def remove(self, ctx, name=None):
+    async def remove(self, ctx, name):
+        """Removes person from the modlist"""
         modlist = open(modlist_file, "r")
         names = modlist.readlines()
         modlist.close()
@@ -43,6 +46,7 @@ class Modding(commands.Cog):
 
     @commands.command(name="user", aliases=["User"])
     async def guild_user(self, ctx, user: discord.Member = None):
+        """Returns information on a given user"""
         if user is None:
             await ctx.send("Usage: `-user [@user]`")
             return

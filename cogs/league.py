@@ -16,40 +16,35 @@ class League(commands.Cog):
 
     @commands.group(aliases=["League"])
     async def league(self, ctx):
+        """For League of Legends | Contains the Rank, Profile, Match, and Clash subcommands.
+        Current valid regions are: RU, KR, BR, OCE, JP, NA, EUNE, EUW, TR, LAN, and LAS."""
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are rank, profile, and clash")
         return
 
     @league.command(aliases=["Rank"])
-    async def rank(self, ctx, name=None, region=None):
-        if name == None:
-            await ctx.send(
-                "Usage: `-league rank [Summoner_name][region]`. Valid regions are: RU, KR, BR, OCE, JP, NA, EUNE, EUW, TR, LAN, and LAS."
-            )
-            return
-        if region == None:
-            await ctx.send("You did not specify a region")
-            return
-        embed = discord.Embed(title=name + "'s Ranks in " + region, color=0xA9152B)
+    async def rank(self, ctx, user_name, region):
+        """Returns user's rank. """
+        embed = discord.Embed(title=user_name + "'s Ranks in " + region, color=0xA9152B)
         region = await utils.region_to_valid_region(region.upper())
         if region == "Invalid Region":
             await ctx.send("The server you entered is invalid, or it's a Garena server")
         else:
-            summonerInfo = await database.checkSummonerInfo(name)
+            summonerInfo = await database.checkSummonerInfo(user_name)
             if summonerInfo is None:
-                summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
-                await database.writeSummonerInfo(name, summoneridrequest)
+                summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name)
+                await database.writeSummonerInfo(user_name, summoneridrequest)
                 summonerid = summoneridrequest["id"]
             else:
                 summonerid = summonerInfo[2]
             rankedrequest = await apirequests.league(ctx, region, "league", "entries/by-summoner/", summonerid)
             # tftrequest = await apirequests.league(ctx, region, "league", "entries/by-summoner", summonerid)
             if rankedrequest == []:  # and tftrequest == []:
-                embed.add_field(name="Unranked", value=name + " is unranked in all queues")
+                embed.add_field(name="Unranked", value=user_name + " is unranked in all queues")
                 await ctx.send(embed=embed)
                 return
             if rankedrequest != []:
-                oldRankInfo = await database.checkRankedInfo(name)
+                oldRankInfo = await database.checkRankedInfo(user_name)
                 old_solo_rank = "N/A"
                 old_flex_rank = "N/A"
                 #old_tft_rank = "N/A"
@@ -79,27 +74,20 @@ class League(commands.Cog):
                         embed.add_field(name="Flex (Last Query -> Today)", value=f'{old_flex_rank} -> {message}', inline=False)
                     else:
                         continue
-                await database.writeRankedInfo(name, rankedrequest)
+                await database.writeRankedInfo(user_name, rankedrequest)
             # if tftrequest != []:
             # embed.add_field(name="TFT", value=tftrequest[0]["tier"] + " " + tftrequest[0]["rank"] + " " + str(tftrequest[0]["leaguePoints"]) + "LP",inline=True)
             await ctx.send(embed=embed)
             return
 
     @league.command(aliases=["Profile"])
-    async def profile(self, ctx, name=None, region=None):
+    async def profile(self, ctx, user_name, region):
+        """Returns user's profile"""
         mastery_message = ""
         profileicon = ""
         summonerid = ""
-        if name == None:
-            await ctx.send(
-                "Usage: `-league profile [Summoner_name] [region]`. Valid regions are: RU, KR, BR, OCE, JP, NA, EUNE, EUW, TR, LAN, and LAS."
-            )
-            return
-        if region == None:
-            await ctx.send("You did not specify a region")
-            return
         region = await utils.region_to_valid_region(region.upper())
-        summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
+        summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name)
         profileicon = summoneridrequest["profileIconId"]
         accountid = summoneridrequest['accountId']
         summonerlevel = summoneridrequest['summonerLevel']
@@ -112,7 +100,7 @@ class League(commands.Cog):
             masterypoints = str(masteries[x]["championPoints"])
             mastery_message += f'{champions} | {masterypoints}\n'
         matches_played = await apirequests.league(ctx, region, "match", "matchlists/by-account/", accountid + "?endIndex=1&beginIndex=0")
-        embed = discord.Embed(title=name + "'s Profile on " + region.upper(), description=f'Summoner Level: {summonerlevel}',color=0xA9152B)
+        embed = discord.Embed(title=user_name + "'s Profile on " + region.upper(), description=f'Summoner Level: {summonerlevel}',color=0xA9152B)
         embed.set_thumbnail(
             url="http://ddragon.leagueoflegends.com/cdn/10.3.1/img/profileicon/" + str(profileicon) + ".png"
         )
@@ -147,27 +135,22 @@ class League(commands.Cog):
         return
 
     @league.command(aliases=["Clash"])
-    async def clash(self, ctx, name=None, region=None):
-        if name == None:
-            await ctx.send("Usage: `-league clash [user_name]`")
-            return
-        if region == None:
-            await ctx.send("You did not specify a region")
-            return
+    async def clash(self, ctx, user_name, region):
+        """Returns user's clash team, if any"""
         region = await utils.region_to_valid_region(region.upper())
         if region == "Invalid Region":
             await ctx.send("The server you entered is invalid, or it's a Garena server")
             return
-        summonerInfo = await database.checkSummonerInfo(name)
+        summonerInfo = await database.checkSummonerInfo(user_name)
         if summonerInfo is None:
-            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
-            await database.writeSummonerInfo(name, summoneridrequest)
+            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name)
+            await database.writeSummonerInfo(user_name, summoneridrequest)
             summonerid = summoneridrequest["id"]
         else:
             summonerid = summonerInfo[2]
         clash_user_response = await apirequests.clash_user(ctx, region, summonerid)
         if clash_user_response == []:
-            await ctx.send(f'{name} is not in a Clash team at this time.')
+            await ctx.send(f'{user_name} is not in a Clash team at this time.')
             return
         clash_team_response = await apirequests.clash_team(ctx, region, clash_user_response[0]['teamId'])
         user_message = ""
@@ -184,21 +167,16 @@ class League(commands.Cog):
         return
 
     @league.command(aliases=["Match"])
-    async def match(self, ctx, name=None, region=None):
-        if name == None:
-            await ctx.send("Usage: `-league match [user_name]")
-            return
-        if region == None:
-            await ctx.send("You did not specify a region")
-            return
+    async def match(self, ctx, user_name, region):
+        """If the user is in a match, send current match info along with a spectate file"""
         region = await utils.region_to_valid_region(region.upper())
         if region == "Invalid Region":
             await ctx.send("The server you entered is invalid, or it's a Garena server")
             return
-        summonerInfo = await database.checkSummonerInfo(name)
+        summonerInfo = await database.checkSummonerInfo(user_name)
         if summonerInfo is None:
-            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", name)
-            await database.writeSummonerInfo(name, summoneridrequest)
+            summoneridrequest = await apirequests.league(ctx, region, "summoner", "summoners/by-name/", user_name)
+            await database.writeSummonerInfo(user_name, summoneridrequest)
             summonerid = summoneridrequest["id"]
         else:
             summonerid = summonerInfo[2]
@@ -221,7 +199,7 @@ class League(commands.Cog):
             time_remaining += str(int(in_game_timer%60))
         else:
             time_remaining += "0" + str(int(in_game_timer%60))
-        embed = discord.Embed(title=name + " Match", description="In-Game Time: " + time_remaining, color=0xA9152B)
+        embed = discord.Embed(title=user_name + " Match", description="In-Game Time: " + time_remaining, color=0xA9152B)
         embed.add_field(name="Team 1", value=team_1_msg, inline=True)
         embed.add_field(name="Team 2", value=team_2_msg, inline=True)
         embed.set_footer(text="In-Game Time is approximate.")

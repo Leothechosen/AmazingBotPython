@@ -13,6 +13,7 @@ class Poll(commands.Cog):
 
     @commands.command(name="poll")
     async def poll(self, ctx, *, arguments=None):
+        """Starts a poll | Usage: `-poll [Question], [Answer1], [Answer2], ..., [Answer9], [Time in Seconds (Max: 300)]`"""
         if arguments == None:
             await ctx.send(
                 "Usage: `-poll [Question], [Answer1], [Answer2], ..., [Answer9], [Time in Seconds (Max: 300)]`"
@@ -28,17 +29,17 @@ class Poll(commands.Cog):
         remainingseconds = 0
         timeremaining = 0
         try:
-            int(arguments[-1])
+            remainingseconds = int(arguments[-1])
         except ValueError:
             await ctx.send(
                 "The last argument sent needs to be an integer indicating how long the poll should last in seconds (Max:300, rounded to the nearest 5 otherwise)"
             )
-        if int(arguments[-1]) > 300:
+        if remainingseconds > 300:
             await ctx.send("Poll timer has been set to the maximum value of 300 seconds")
             remainingseconds = 300
         else:
             # Rounds to a multple of 5
-            remainingseconds = round(int(arguments[-1]) / 5) * 5
+            remainingseconds = round(remainingseconds / 5) * 5
         del arguments[-1]
         if question[-1] != "?":
             question += "?"

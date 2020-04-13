@@ -17,14 +17,17 @@ class Predictions(commands.Cog):
         self.bot.loop.create_task(db.checkDB())
         self.updating = False
 
-    @commands.command(name="refreshcache")
+    @commands.command(name="refreshcache", hidden=True)
     @commands.is_owner()
     async def refreshcache(self, ctx):
+        """Reloads the AmazingBot database"""
         importlib.reload(db)
         await ctx.send("DB Cache refreshed")
 
     @commands.group(aliases=["Prediction", "predictions"])
     async def prediction(self, ctx):
+        """League of Legends | Subcommands are pick, view, record, and leaderboard
+        Allows users to predict upcoming matches and keep track of Correct/Wrong predictions"""
         await db.checkdiscord(ctx)
         if self.updating == False:
             self.updating = True
@@ -36,6 +39,7 @@ class Predictions(commands.Cog):
 
     @prediction.command(name="pick")
     async def pick(self, ctx):
+        """Returns interactive embed to predict matches on any supported league"""
         await db.checkdiscord(ctx)
         leagues_message = ""
         end_message = ""
@@ -81,6 +85,7 @@ class Predictions(commands.Cog):
 
     @prediction.command(name="view")
     async def view(self, ctx):
+        """Returns user's match predictions for a given league and week"""
         original_user = ctx.author.id
         leagues_message = ""
         leagues_list = ["LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
@@ -138,6 +143,7 @@ class Predictions(commands.Cog):
 
     @prediction.command(name="record")
     async def record(self, ctx):
+        """Returns user's prediction overall record or a specific league record"""
         original_user = ctx.author.id
         leagues_message = "0: Overall\n"
         leagues_list = ["Overall", "LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
@@ -167,6 +173,7 @@ class Predictions(commands.Cog):
 
     @prediction.command(name="leaderboard")
     async def leaderboard(self, ctx):
+        """Returns an ordered list of all user's prediction record"""
         original_user = ctx.author.id
         leagues_list = ["Overall", "LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
         reaction_list = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
@@ -211,6 +218,7 @@ class Predictions(commands.Cog):
     @prediction.command(name="update")
     @commands.has_any_role("Moderators", "Bot Tester")
     async def update(self, ctx):
+        """Moderator Only | Updates the match database, shouldn't be necessary"""
         try:
             update_check = await db.updatematch(ctx)
             if update_check != False:

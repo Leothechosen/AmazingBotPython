@@ -16,17 +16,15 @@ class eSports(commands.Cog):
 
     @commands.group()
     async def esports(self, ctx):
+        """Subcommands are standings, team, and schedule
+        Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)"""
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are standings, team and schedule. See pinned message for usage.")
         return
 
     @esports.command()
-    async def standings(self, ctx, tournament=None):
-        if tournament == None:
-            await ctx.send(
-                "Usage: `-esports standings [league]`. Supported Leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)"
-            )
-            return
+    async def standings(self, ctx, tournament):
+        """Returns the standings of given League"""
         ordinal_message = ""
         teams_message = ""
         records_message = ""
@@ -53,7 +51,8 @@ class eSports(commands.Cog):
         await ctx.send(embed=embed)
 
     @esports.command()
-    async def schedule(self, ctx, league=None, team=None):
+    async def schedule(self, ctx, league, team=None):
+        """Returns schedule of given league or team"""
         schedule_message = ""
         teams1_message = ""
         teams2_message = ""
@@ -61,11 +60,6 @@ class eSports(commands.Cog):
         thumbnail = ""
         team_record = ""
         next_4_matches = 0
-        if league is None:
-            await ctx.send(
-                "Usage: `-esports schedule [league] (Optional: [team abbreviation])`. Supported leagues are: LCS, LEC, LCK, LPL, OPL, CBLOL, TCL, LJL, and LCSA(cademy)"
-            )
-            return
         leaguename = await utils.sanitizeinput(league)
         leagueid = await utils.getLeagueId(league)
         if leagueid == "Invalid League":
@@ -135,6 +129,7 @@ class eSports(commands.Cog):
 
     @esports.command()
     async def team(self, ctx, team=None):
+        """Returns the players of the given team. Includes Academy/EUM players, if possible."""
         role_message = ""
         name_message = ""
         if team == None:

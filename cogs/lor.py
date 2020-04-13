@@ -15,12 +15,15 @@ class Lor(commands.Cog):
 
     @commands.group()
     async def lor(self, ctx):
+        """Legends of Runeterra | Currently, the only subcommand is leaderboard
+        Valid regions are Americas, Europe, and Asia"""
         if ctx.invoked_subcommand is None:
             await ctx.send("Subcommands are leaderboard")
         return
 
     @lor.command()
     async def leaderboard(self, ctx, region=None):
+        """Returns the leaderboard for a given region"""
         leaderboard_message = ""
         rank_message = ""
         valid_regions = ["americas", "europe", "asia"]

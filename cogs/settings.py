@@ -12,14 +12,12 @@ class Settings(commands.Cog):
     
     @commands.command(name="servertime")
     @commands.has_guild_permissions(administrator=True)
-    async def servertime(self, ctx, channel_id=None, timezone=None):
-        if channel_id == None and timezone == None:
-            await ctx.send("To set a channel to display Server Time: `-servertime [channel_id] [timezone]`\nTo delete your Server Time settings: `-servertime delete`\nValid timezones: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
-        elif channel_id == "delete":
+    async def servertime(self, ctx, channel_id, timezone):
+        """Admin only | Set a channel to keep track of the Server's given timezone | `-servertime delete` will delete the server's settings"""
+        if channel_id == "delete":
             await database.writeGuildSettings(ctx.guild.id, None, None)
             await ctx.send("Your settings have been deleted. To set them again, do `-servertime [channel_id] [timezone]`")
-        elif timezone == None:
-            await ctx.send("You must specify a timezone. See here for valid timezones: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
+            logger.info(f'"{ctx.guild.name}" deleted their Servertime settings.')
         elif timezone not in pytz.all_timezones:
             await ctx.send("You have entered an invalid timezone. See here for valid timezones: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
         else:
@@ -27,7 +25,7 @@ class Settings(commands.Cog):
             if channel_for_servertime is not None:
                 await database.writeGuildSettings(ctx.guild.id, channel_id, timezone)
                 await ctx.send(f"Settings saved.")
-                logger.info(f"'{ctx.guild.name} changed their Servertime settings. Channel: {channel_id} | Timezone {timezone}")
+                logger.info(f'"{ctx.guild.name}" changed their Servertime settings. Channel: {channel_id} | Timezone {timezone}')
             else:
                 await ctx.send("The id provided is not valid. Check the desired channel's ID again.")
             
@@ -35,10 +33,8 @@ class Settings(commands.Cog):
 
     @commands.command(name="prefix")
     @commands.has_guild_permissions(administrator=True)
-    async def prefix(self, ctx, new_prefix = None):
-        if new_prefix is None:
-            await ctx.send("Usage: `-prefix [new_prefix]`")
-            return
+    async def prefix(self, ctx, new_prefix):
+        """Admin only | Set the bot's prefix for this server"""
         await database.writeGuildPrefix(ctx.guild.id, new_prefix)
         await ctx.send(f"Setting saved. Your new prefix is {new_prefix}")
         logger.info(f"'{ctx.guild.name}' changed their prefix to {new_prefix}")
