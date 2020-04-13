@@ -26,9 +26,11 @@ class Settings(commands.Cog):
             channel_for_servertime = self.bot.get_channel(id=int(channel_id))
             if channel_for_servertime is not None:
                 await database.writeGuildSettings(ctx.guild.id, channel_id, timezone)
-                await ctx.send("Settings saved.")
+                await ctx.send(f"Settings saved.")
+                logger.info(f"'{ctx.guild.name} changed their Servertime settings. Channel: {channel_id} | Timezone {timezone}")
             else:
                 await ctx.send("The id provided is not valid. Check the desired channel's ID again.")
+            
         return
 
     @commands.command(name="prefix")
@@ -39,6 +41,7 @@ class Settings(commands.Cog):
             return
         await database.writeGuildPrefix(ctx.guild.id, new_prefix)
         await ctx.send(f"Setting saved. Your new prefix is {new_prefix}")
+        logger.info(f"'{ctx.guild.name}' changed their prefix to {new_prefix}")
         return    
 
 def setup(bot):
