@@ -39,6 +39,8 @@ async def on_command(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
+    if isinstance(error, commands.errors.CommandNotFound):
+        return
     logger.error(f'Error in {ctx.command}')
     logger.error(f'{error}')
     owner = bot.get_user(bot.owner_id)
