@@ -264,9 +264,6 @@ class Misc(commands.Cog):
 -fah (Folding@Home)
     team [team_id]
     user [user_name or user_id]
-
--servertime [channel_id] [timezone] (Set a channel to display the server's local timezone via channel name)
-
 -poll [question], [answer1], [answer2], ..., [answer9], [time_in_seconds (Max: 300)]
 -temp [temperatureF/C/K]
 -8ball
@@ -275,7 +272,9 @@ class Misc(commands.Cog):
 -bugreport [message]
 -suggestion [message]
 -botinfo
--serverinfo```""")
+-serverinfo
+
+Admin only: -servertime [channel_id] [timezone] (Set a channel to display the server's local timezone via channel name)```""")
 
     @commands.command(name="servertime")
     @commands.has_guild_permissions(administrator=True)
