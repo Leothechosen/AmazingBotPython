@@ -69,11 +69,16 @@ async def createdb():
 
     CREATE TABLE RankedInfo (
         summonerName text,
-        SoloDuo text,
-        Flex text,
+        RANKED_SOLO_5x5 text,
+        RANKED_FLEX_SR text,
         TFT text
     )
 	
+    CREATE TABLE GuildSettings (
+        guild_id integer,
+        channel_id integer,
+        timezone text
+    )
 	INSERT INTO League(code, name) VALUES ("lcs", "LCS");
 	INSERT INTO League(code, name) VALUES ("lec", "LEC");
 	INSERT INTO League(code, name) VALUES ("lck", "LCK");
@@ -643,3 +648,32 @@ async def writeRankedInfo(summonerName, rankedInfo):
             
     conn.commit()
     conn.close()
+
+async def getAllGuildSettings():
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT * From GuildSettings")
+    allGuildSettings = c.fetchall()
+    conn.close()
+    return allGuildSettings
+
+async def getOneGuildSettings(guild_id):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT * From GuildSettings WHERE guild_id = ?", (guild_id,))
+    oneGuildSettings = c.fetchone()
+    conn.close()
+    return oneGuildSettings
+
+async def writeGuildSettings(guild_id:int, channel_id:int, timezone:str):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("SELECT * From GuildSettings WHERE guild_id = ?", (guild_id,))
+    guild_check = c.fetchone()
+    if guild_check is None:
+        c.execute("INSERT INTO GuildSettings (guild_id, channel_id, time_zone) VALUES (?, ?, ?)", (guild_id, channel_id, timezone))
+    else:
+        c.execute("UPDATE GuildSettings SET channel_id = ?, time_zone = ? WHERE guild_id = ?", (channel_id, timezone, guild_id))
+    conn.commit()
+    conn.close()
+    return
