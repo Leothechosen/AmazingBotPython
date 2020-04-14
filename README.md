@@ -14,7 +14,7 @@ Commands (Prefix is -) :
 3. esports 
    - standings [league]
    - team [team]
-   - schedule [league]
+   - schedule [league] [team]
 4. prediction
    - pick
    - view
