@@ -21,7 +21,7 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 async def get_prefix(bot, message):
     prefix = await database.getGuildPrefix(message.guild.id)
-    if prefix is None:
+    if prefix[0] is None:
         return "-"
     else:
         return prefix[0]
