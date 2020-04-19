@@ -328,6 +328,18 @@ class Misc(commands.Cog):
             await ctx.send("`Roleless` has been removed, and `Member` has been given")
         return
 
+    @commands.command(name="reactionroles", hidden=True)
+    @commands.is_owner()
+    async def reactionroles(self, ctx):
+        reactions = await utils.role_reaction_emojis()
+        embed = discord.Embed(title="Add a reaction to get the corresponding role", color=0xA9152B)
+        embed.add_field(name="Regional Roles", value=f'{reactions["NA"]} (NA)\n{reactions["EUNE"]} (EUNE)\n{reactions["EUW"]} (EUW)\n{reactions["OCE"]} (OCE)', inline=False)
+        embed.add_field(name="Channel Roles", value=f'{reactions["18"]} (Access to #dirty-leo-chat)', inline=False)
+        reactionRoleMsg = await ctx.send(embed=embed)
+        for reaction in reactions:
+            await discord.Message.add_reaction(reactionRoleMsg, reactions[reaction])
+        return
+
     @tasks.loop(minutes=1.0)
     async def theserverTime(self):
         allGuildSettings = await database.getAllGuildSettings()

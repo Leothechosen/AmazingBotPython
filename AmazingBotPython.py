@@ -4,6 +4,7 @@ import logging
 import os
 import discord
 import database
+import utils
 from datetime import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -73,8 +74,35 @@ async def on_guild_remove(guild):
     logger.info(f'AmazingBot was removed from "{guild.name}" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id}')
     await bot.get_user(bot.owner_id).send(f'AmazingBot was removed from "{guild.name}"\nGuild_ID: {guild.id}\nOwner_ID: {guild.owner_id}')
 
+@bot.event
+async def on_raw_reaction_add(payload):
+    try:
+        if payload.message_id != 701330031925788672:
+            return
+        role_reaction = await utils.role_reaction_emojis(str(payload.emoji))
+        role_to_add = await utils.role_reaction_roles(str(role_reaction))
+        guild = bot.get_guild(payload.guild_id)
+        role = guild.get_role(role_to_add)
+        member = guild.get_member(payload.user_id)
+        await member.add_roles(role)
+    except:
+        logger.exception("")
+    return
 
-
+@bot.event
+async def on_raw_reaction_remove(payload):
+    try:
+        if payload.message_id != 701330031925788672:
+            return
+        role_reaction = await utils.role_reaction_emojis(str(payload.emoji))
+        role_to_remove = await utils.role_reaction_roles(str(role_reaction))
+        guild = bot.get_guild(payload.guild_id)
+        role = guild.get_role(role_to_remove)
+        member = guild.get_member(payload.user_id)
+        await member.remove_roles(role)
+    except:
+        logger.exception("")
+    return
 @bot.command(hidden=True)
 @commands.is_owner()
 async def load(ctx, extension):

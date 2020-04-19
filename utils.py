@@ -533,12 +533,37 @@ async def get_size(bytes, suffix="B"):
         bytes /= factor
     return bytes
 
+async def role_reaction_emojis(key=None):
+    reactions = {
+            "NA": "<:NorthAmerica:701323008500957204>",
+            "EUNE": "<:EuropeNE:701324408610095124>",
+            "EUW": "<:EuropeWest:701324198143852545>",
+            "OCE": "<:Oceania:701324676298702898>",
+            "18": "🔞"
+        }
+    if key == None:
+        return reactions
+    else:
+        key_list = list(reactions.keys())
+        val_list = list(reactions.values())
+        return key_list[val_list.index(key)]
+
+async def role_reaction_roles(role):
+    roles = {
+        "NA": 662149881938575370,
+        "EUW": 662150028474712066,
+        "EUNE": 663462206284759051,
+        "OCE": 663462621948805151,
+        "18": 665331179528126496
+    }
+    return roles.get(role, "error")
+
 async def spectategen(ctx, region, gameID, encryptionkey):
     server = await region_to_valid_server(region)
     if server == "Invalid Server":
         return False
     f = open("Spectate.bat", "w")
-    f.write("""rem OP.GG Spectate
+    f.write("""rem OP.GG Spectate 
     SETLOCAL enableextensions enabledelayedexpansion 
     @echo off
 
@@ -628,6 +653,6 @@ async def spectategen(ctx, region, gameID, encryptionkey):
     echo ===================
     @pause
 
-    :eof""".format(server, encryptionkey, gameID, region, server, encryptionkey, gameID, region))
+    :eof""".format(server, encryptionkey, gameID, region, server, encryptionkey, gameID, region)) 
     f.close()
     return
