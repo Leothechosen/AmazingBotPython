@@ -2,6 +2,7 @@ import discord
 import database
 import logging
 import pytz
+from datetime import datetime
 from discord.ext import commands
 
 logger = logging.getLogger(f"AmazingBot.{__name__}")
@@ -28,8 +29,16 @@ class Settings(commands.Cog):
                 logger.info(f'"{ctx.guild.name}" changed their Servertime settings. Channel: {channel_id} | Timezone {timezone}')
             else:
                 await ctx.send("The id provided is not valid. Check the desired channel's ID again.")
-            
         return
+
+    @commands.command(name="servertimefmt", hidden=True)
+    @commands.has_guild_permissions(administrator=True)
+    async def servertimefmt(self, ctx, *, fmt):
+        """Admin only | Sets the server's time format setting
+        Examples: **%H:%M %Z** outputs to 13:25 PST | **%I:%M %p** outputs to 1:25 PM | Default is %H:%M %Z
+        Valid settings: https://strftime.org/"""
+        pass
+
 
     @commands.command(name="prefix")
     @commands.has_guild_permissions(administrator=True)
