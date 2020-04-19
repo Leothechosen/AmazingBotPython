@@ -525,6 +525,14 @@ async def division_to_number(division: str):
     }
     return switcher.get(division, "error")
 
+async def get_size(bytes, suffix="B"):
+    factor = 1024
+    for unit in ["", "K", "M", "G", "T", "P"]:
+        if bytes < factor:
+            return f"{bytes:.2f}{unit}{suffix}"
+        bytes /= factor
+    return bytes
+
 async def spectategen(ctx, region, gameID, encryptionkey):
     server = await region_to_valid_server(region)
     if server == "Invalid Server":
