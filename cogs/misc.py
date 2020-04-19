@@ -11,6 +11,9 @@ import apirequests
 import logging
 import random
 import database
+import matplotlib.pyplot as plt
+import psutil
+import platform
 
 logger = logging.getLogger("AmazingBot." + __name__)
 load_dotenv()
@@ -238,19 +241,104 @@ class Misc(commands.Cog):
             pass
         await ctx.send(embed=embed)
 
+    @commands.command(name="systeminfo")
+    async def systeminfo(self, ctx):
+        """Returns system info"""
+        cpu_msg = ""
+        for i, percentage in enumerate(psutil.cpu_percent(percpu=True)):
+            cpu_msg += f"Core {i}: {percentage}%\n"
+        sys_mem = psutil.virtual_memory()
+        sys_mem_total = await utils.get_size(sys_mem.total)
+        sys_mem_used = await utils.get_size(sys_mem.used)
+        sys_mem_perc = f"{sys_mem.percent}%"
+        embed = discord.Embed(title="AmazingBot System Info", color=0xA9152B)
+        embed.add_field(name="CPU usage", value = cpu_msg, inline=True)
+        embed.add_field(name="RAM usage", value = f"{sys_mem_used} / {sys_mem_total} ({sys_mem_perc})", inline=True)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="guilds", hidden=True)
+    @commands.is_owner()
+    async def guilds(self, ctx):
+        """Returns guilds that the bot is in"""
+        guild_msg = ""
+        members_msg = ""
+        for guild in self.bot.guilds:
+            guild_msg += f"{guild}\n"
+            members_msg += f"{guild.member_count}\n"
+        embed = discord.Embed(title="Guilds AmazingBot Is In", color=0xA9152B)
+        embed.add_field(name="Guild Name", value = guild_msg, inline=True)
+        embed.add_field(name="# of Members", value = members_msg, inline=True)
+        await ctx.send(embed=embed)
+        return
+
+
+    @commands.command(name="online")
+    async def piechart(self, ctx):
+        """Returns a pie chart of users online, idle, DND, and offline"""
+        online = 0
+        offline = 0
+        dnd = 0
+        idle = 0
+        for member in ctx.guild.members:
+            status = str(member.status)
+            if status == "online":
+                online += 1
+            elif status == "idle":
+                idle += 1
+            elif status == "dnd" or status == "do_not_disturb":
+                dnd += 1
+            elif status  == "offline" or status == "invisible":
+                offline += 1
+            else:
+                logger.info(f"Error with member: {member} | Status: {member.status}")
+        total = online+offline+dnd+idle
+        labels = f'Online ({online})', f'Idle ({idle})', f'DND ({dnd})', f'Offline ({offline})'
+        slices = (online/total, idle/total, dnd/total, offline/total)
+        fig, axes = plt.subplots()
+        axes.pie(slices, labels = labels, autopct = '%.1f%%', colors=("green", "orange", "red", "DarkGray"))
+        axes.axis('equal')
+        axes.margins(tight=True)
+        fig.savefig("test.png")
+        await ctx.send(file=discord.File('test.png'))
+        os.remove("test.png")
+        return
+
+    @commands.command(name="roleswitch", hidden=True)
+    @commands.is_owner()
+    async def roleswitch(self, ctx):
+        ccc = self.bot.get_guild(318111683262283776)
+        member_role = ccc.get_role(700161690540441641)
+        roleless_role = ccc.get_role(335620228295950337)
+        for member in ccc.members:
+            if roleless_role not in member.roles and member_role not in member.roles:
+                await member.add_roles(member_role)
+        return
+
+    @commands.command(name="done", hidden=True)
+    async def done(self, ctx):
+        ccc = self.bot.get_guild(318111683262283776)
+        bot_commands_channel = ccc.get_channel(318457650092441600)
+        if ctx.guild != ccc or ctx.channel != bot_commands_channel:
+            return
+        member_role = ccc.get_role(700161690540441641)
+        roleless_role = ccc.get_role(335620228295950337)
+        if roleless_role in ctx.author.roles:
+            await ctx.author.remove_roles(roleless_role)
+            await ctx.author.add_roles(member_role)
+            await ctx.send("`Roleless` has been removed, and `Member` has been given")
+        return
+
     @tasks.loop(minutes=1.0)
     async def theserverTime(self):
         allGuildSettings = await database.getAllGuildSettings()
         fmt = "%H:%M %Z"
         for guild in allGuildSettings:
-            try:
-                if guild[1] is not None:
-                    channel_for_servertime = self.bot.get_channel(id=guild[1])
-                    serverTime = datetime.now(timezone(guild[2]))
-                    serverTime = serverTime.strftime(fmt)
-                    await channel_for_servertime.edit(name=serverTime)
-            except:
-                logger.exception("Server Time Error")
+            if guild[1] is not None:
+                channel_for_servertime = self.bot.get_channel(id=guild[1])
+                serverTime = datetime.now(timezone(guild[2]))
+                serverTime = serverTime.strftime(fmt)
+                await channel_for_servertime.edit(name=serverTime)
+                await asyncio.sleep(0.1)
     
     @theserverTime.before_loop
     async def before_theserverTime(self):
