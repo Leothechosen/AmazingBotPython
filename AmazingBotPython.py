@@ -41,8 +41,13 @@ async def on_connect():
 @bot.event
 async def on_command(ctx):
     logger.info(f' Message {ctx.message.content} - User: {ctx.message.author}')
+    bot.startTimer = datetime.now()
     await ctx.trigger_typing()
     return
+
+@bot.event
+async def on_command_completion(ctx):
+    logger.info(f"Completed in {datetime.now() - bot.startTimer}")
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -61,10 +66,13 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_guild_join(guild):
     logger.info(f'AmazingBot has joined "{guild.name}"" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id} | # of members: {len(guild.members)}')
+    await bot.get_user(bot.owner_id).send(f'AmazingBot has joined "{guild.name}" \nGuild_ID: {guild.id}\nOwner_ID: {guild.owner_id}\n# of members: {len(guild.members)}')
 
 @bot.event
 async def on_guild_remove(guild):
     logger.info(f'AmazingBot was removed from "{guild.name}" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id}')
+    await bot.get_user(bot.owner_id).send(f'AmazingBot was removed from "{guild.name}"\nGuild_ID: {guild.id}\nOwner_ID: {guild.owner_id}')
+
 
 
 @bot.command(hidden=True)
