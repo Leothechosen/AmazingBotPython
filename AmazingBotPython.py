@@ -77,7 +77,7 @@ async def on_guild_remove(guild):
 @bot.event
 async def on_raw_reaction_add(payload):
     try:
-        if payload.message_id != 701330031925788672:
+        if payload.message_id != 701341554287181884:
             return
         role_reaction = await utils.role_reaction_emojis(str(payload.emoji))
         role_to_add = await utils.role_reaction_roles(str(role_reaction))
@@ -92,7 +92,7 @@ async def on_raw_reaction_add(payload):
 @bot.event
 async def on_raw_reaction_remove(payload):
     try:
-        if payload.message_id != 701330031925788672:
+        if payload.message_id != 701341554287181884:
             return
         role_reaction = await utils.role_reaction_emojis(str(payload.emoji))
         role_to_remove = await utils.role_reaction_roles(str(role_reaction))
@@ -131,7 +131,7 @@ async def reload(ctx, extension):
 @bot.command()
 async def ping(ctx):
     """Pong"""
-    await ctx.send("Pong")
+    await ctx.send(f"Pong ({round(bot.latency*1000)}ms)")
     return
 
 
