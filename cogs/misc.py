@@ -303,30 +303,6 @@ class Misc(commands.Cog):
         os.remove("test.png")
         return
 
-    @commands.command(name="roleswitch", hidden=True)
-    @commands.is_owner()
-    async def roleswitch(self, ctx):
-        ccc = self.bot.get_guild(318111683262283776)
-        member_role = ccc.get_role(700161690540441641)
-        roleless_role = ccc.get_role(335620228295950337)
-        for member in ccc.members:
-            if roleless_role not in member.roles and member_role not in member.roles:
-                await member.add_roles(member_role)
-        return
-
-    @commands.command(name="done", hidden=True)
-    async def done(self, ctx):
-        ccc = self.bot.get_guild(318111683262283776)
-        bot_commands_channel = ccc.get_channel(318457650092441600)
-        if ctx.guild != ccc or ctx.channel != bot_commands_channel:
-            return
-        member_role = ccc.get_role(700161690540441641)
-        roleless_role = ccc.get_role(335620228295950337)
-        if roleless_role in ctx.author.roles:
-            await ctx.author.remove_roles(roleless_role)
-            await ctx.author.add_roles(member_role)
-            await ctx.send("`Roleless` has been removed, and `Member` has been given")
-        return
 
     @commands.command(name="reactionroles", hidden=True)
     @commands.is_owner()
