@@ -58,7 +58,8 @@ class Predictions(commands.Cog):
         try:
             block_name, matches = await db.get_next_block_and_matches(league)
         except:
-            await ctx.send(f"Unfortunately, {league} doesn't have any matches to predict. If you believe this is an error, ping Leo.")
+            await ctx.send(f"Unfortunately, {league} doesn't have any matches to predict.")
+            return
         allowed_reactions = ["1️⃣", "2️⃣"]
         try:
             for x in range(len(matches)):
@@ -67,6 +68,8 @@ class Predictions(commands.Cog):
                 embed.set_field_at(0, name="Which team do you predict will win?", value=f'1: {team_1} \n2: {team_2}')
                 await discord.Message.edit(msg, embed=embed)
                 react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
+                if react == False:
+                    return
                 if reaction_list.index(react[0].emoji) == 0:
                     await db.writePredictions(team_1, matches[x][0], original_user)
                     end_message += f'**{team_1}** vs {team_2}'
