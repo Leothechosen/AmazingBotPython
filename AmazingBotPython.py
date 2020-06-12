@@ -5,6 +5,7 @@ import os
 import discord
 import database
 import utils
+import traceback
 from datetime import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -60,7 +61,8 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.MissingRequiredArgument):
         await ctx.send(f"You are missing required parameters. Use `-help {ctx.invoked_with}` to check what is required.")
         return
-    logger.exception(f"Error in {ctx.command}")
+    logger.error(f"Error in {ctx.command}\n{error}")
+    logger.error("".join(traceback.format_tb(error.original.__traceback__)))
     owner = bot.get_user(bot.owner_id)
     await owner.send(f'Error in {ctx.command}\n{error}')
 
