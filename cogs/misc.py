@@ -316,7 +316,7 @@ class Misc(commands.Cog):
             await discord.Message.add_reaction(reactionRoleMsg, reactions[reaction])
         return
 
-    @tasks.loop(minutes=1.0)
+    @tasks.loop(minutes=5.0)
     async def theserverTime(self):
         allGuildSettings = await database.getAllGuildSettings()
         fmt = "%H:%M %Z"
@@ -331,10 +331,15 @@ class Misc(commands.Cog):
     @theserverTime.before_loop
     async def before_theserverTime(self):
         minutecheck = datetime.now(timezone("CET"))
-        fmt2 = "%s"
-        minutecheck = int(minutecheck.strftime(fmt2))
-        minutecheck = 61 - (minutecheck % 60)
-        await asyncio.sleep(minutecheck)
+        fmt2 = "%M"
+        fmt3 = "%s"
+        minutecheck = int(minutecheck.strftime(fmt2))%5
+        secondcheck = 61 - int(minutecheck.strftime(fmt3))
+        if minutecheck != 0:
+            minutecheck = (5-minutecheck)*60
+            await asyncio.sleep(minutecheck-secondcheck)
+        else:
+            await asyncio.sleep(secondcheck)
 
 def setup(bot):
     bot.add_cog(Misc(bot))
