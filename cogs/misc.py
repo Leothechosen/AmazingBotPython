@@ -322,7 +322,6 @@ class Misc(commands.Cog):
         fmt = "%H:%M %Z"
         for guild in allGuildSettings:
             if guild[1] is not None:
-                logger.info(guild)
                 channel_for_servertime = self.bot.get_channel(id=guild[1])
                 serverTime = datetime.now(timezone(guild[2]))
                 serverTime = serverTime.strftime(fmt)
@@ -333,13 +332,16 @@ class Misc(commands.Cog):
     async def before_theserverTime(self):
         time_now = datetime.now(timezone("CET"))
         fmt2 = "%M"
-        fmt3 = "%s"
+        fmt3 = "%S"
         minutecheck = int(time_now.strftime(fmt2))%5
-        secondcheck = 61 - int(time_now.strftime(fmt3))
+        secondcheck = int(time_now.strftime(fmt3))
         if minutecheck != 0:
             minutecheck = (5-minutecheck)*60
+            logger.info(minutecheck-secondcheck)
             await asyncio.sleep(minutecheck-secondcheck)
         else:
+            secondcheck = 61-secondcheck
+            logger.info(secondcheck)
             await asyncio.sleep(secondcheck)
 
 def setup(bot):
