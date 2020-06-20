@@ -38,23 +38,28 @@ class Predictions(commands.Cog):
         return
 
     @prediction.command(name="pick")
-    async def pick(self, ctx):
+    async def pick(self, ctx, league=None):
         """Returns interactive embed to predict matches on any supported league"""
         await db.checkdiscord(ctx)
         leagues_message = ""
         end_message = ""
-        original_user = ctx.author.id
-        reaction_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
         leagues_list = ["LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
-        for x in range(len(reaction_list)):
-            leagues_message += f'{x+1}: {leagues_list[x]}\n'
-        embed = discord.Embed(title="Predictions: League", color=0xA9152B)
-        embed.add_field(name="Which League would you like to predict?", value=leagues_message, inline=False)
-        msg = await ctx.send(embed=embed)
-        react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
-        if isinstance(react, bool) is True:
-            return
-        league = leagues_list[reaction_list.index(react[0].emoji)]
+        reaction_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
+        original_user = ctx.author.id
+        if league == None or league not in leagues_list:
+            for x in range(len(reaction_list)):
+                leagues_message += f'{x+1}: {leagues_list[x]}\n'
+            embed = discord.Embed(title="Predictions: League", color=0xA9152B)
+            embed.add_field(name="Which League would you like to predict?", value=leagues_message, inline=False)
+            msg = await ctx.send(embed=embed)
+            react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
+            if isinstance(react, bool) is True:
+                return
+            league = leagues_list[reaction_list.index(react[0].emoji)]
+        else:
+            embed = discord.Embed(title="Predictions: League", color=0xA9152B)
+            embed.add_field(name="Processing", value = "One moment...")
+            msg = await ctx.send(embed=embed)
         try:
             block_name, matches = await db.get_next_block_and_matches(league)
         except:
@@ -72,10 +77,10 @@ class Predictions(commands.Cog):
                     return
                 if reaction_list.index(react[0].emoji) == 0:
                     await db.writePredictions(team_1, matches[x][0], original_user)
-                    end_message += f'**{team_1}** vs {team_2}'
+                    end_message += f'**{team_1}** vs {team_2}\n'
                 else:
                     await db.writePredictions(team_2, matches[x][0], original_user)
-                    end_message += f'{team_1} vs **{team_2}**'
+                    end_message += f'{team_1} vs **{team_2}**\n'
         except:
             embed.set_field_at(0, name="Error", value=f'Unfortunately, {league} {block_name} is not able to be predicted yet. Once the entirity of teams in {block_name} is determined, you will be able to predict it')
             await discord.Message.edit(msg, embed=embed)
@@ -145,26 +150,32 @@ class Predictions(commands.Cog):
         return
 
     @prediction.command(name="record")
-    async def record(self, ctx):
+    async def record(self, ctx, league=None):
         """Returns user's prediction overall record or a specific league record"""
         original_user = ctx.author.id
         leagues_message = "0: Overall\n"
-        leagues_list = ["Overall", "LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
+        leagues_list = ["OVERALL", "LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
         reaction_list = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
-        allowed_reactions = ["0️⃣"]
-        leagues_predicted = await db.fetchLeaguesPredicted(original_user)
-        if leagues_predicted == None:
-            await ctx.send("You have not made any predictions.")
-            return
-        for x in range(len(leagues_predicted)):
-            leagues_message += str(x + 1) + ": " + leagues_list[leagues_predicted[x][0]] + "\n"
-            allowed_reactions.append(reaction_list[x + 1])
-        embed = discord.Embed(title="View predictions", color=0xA9152B)
-        embed.add_field(name="Which League would you like to view your record in?", value=leagues_message, inline=False)
-        msg = await ctx.send(embed=embed)
-        await discord.Message.add_reaction(msg, reaction_list[0])
-        react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
-        league = leagues_list[reaction_list.index(react[0].emoji)]
+        league = league.upper()
+        if league == None or league not in leagues_list:
+            allowed_reactions = ["0️⃣"]
+            leagues_predicted = await db.fetchLeaguesPredicted(original_user)
+            if leagues_predicted == None:
+                await ctx.send("You have not made any predictions.")
+                return
+            for x in range(len(leagues_predicted)):
+                leagues_message += str(x + 1) + ": " + leagues_list[leagues_predicted[x][0]] + "\n"
+                allowed_reactions.append(reaction_list[x + 1])
+            embed = discord.Embed(title="View predictions", color=0xA9152B)
+            embed.add_field(name="Which League would you like to view your record in?", value=leagues_message, inline=False)
+            msg = await ctx.send(embed=embed)
+            await discord.Message.add_reaction(msg, reaction_list[0])
+            react = await reaction_check(self, ctx, msg, original_user, allowed_reactions, embed)
+            league = leagues_list[reaction_list.index(react[0].emoji)]
+        else:
+            embed = discord.Embed(title="Predictions: League", color=0xA9152B)
+            embed.add_field(name="Processing", value = "One moment...")
+            msg = await ctx.send(embed=embed)
         block_name_msg, correct_pred_msg, wrong_pred_msg = await db.fetchCorrect(league, original_user)
         embed.title = "Prediction Record - " + league
         embed.set_field_at(0, name="Block", value=block_name_msg, inline=True)
@@ -175,25 +186,31 @@ class Predictions(commands.Cog):
         return
 
     @prediction.command(name="leaderboard")
-    async def leaderboard(self, ctx):
+    async def leaderboard(self, ctx, league=None):
         """Returns an ordered list of all user's prediction record"""
         original_user = ctx.author.id
-        leagues_list = ["Overall", "LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
+        leagues_list = ["OVERALL", "LCS", "LEC", "LCK", "LPL", "OCE-OPL", "CBLOL", "TCL", "LJL", "LCSA"]
         reaction_list = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
         users_msg = ""
         record_msg = ""
         rank_msg_array = []
         rank_msg = ""
         leagues_message = ""
-        for x in range(len(leagues_list)):
-            leagues_message += str(x) + ": " + leagues_list[x] + "\n"
-        embed = discord.Embed(title="Predictions Leaderboard", color=0xA9152B)
-        embed.add_field(
-            name="Which League would you like to view the leaderboard in?", value=leagues_message, inline=False
-        )
-        msg = await ctx.send(embed=embed)
-        react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
-        league = leagues_list[reaction_list.index(react[0].emoji)]
+        league = league.upper()
+        if league == None or league not in leagues_list:
+            for x in range(len(leagues_list)):
+                leagues_message += str(x) + ": " + leagues_list[x] + "\n"
+            embed = discord.Embed(title="Predictions Leaderboard", color=0xA9152B)
+            embed.add_field(
+                name="Which League would you like to view the leaderboard in?", value=leagues_message, inline=False
+            )
+            msg = await ctx.send(embed=embed)
+            react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
+            league = leagues_list[reaction_list.index(react[0].emoji)]
+        else:
+            embed = discord.Embed(title="Predictions: League", color=0xA9152B)
+            embed.add_field(name="Processing", value = "One moment...")
+            msg = await ctx.send(embed=embed)
         leaderboard_users, leaderboard_records = await db.fetchLeaderboard(league)
         for x in range(len(leaderboard_users)):
             if x == 0:
