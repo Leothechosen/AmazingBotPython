@@ -22,11 +22,14 @@ logger = logging.getLogger("AmazingBot")
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 async def get_prefix(bot, message):
-    prefix = await database.getGuildPrefix(message.guild.id)
-    if prefix[0] is None:
+    try:
+        prefix = await database.getGuildPrefix(message.guild.id)
+        if prefix[0] is None:
+            return "-"
+        else:
+            return prefix[0]
+    except:
         return "-"
-    else:
-        return prefix[0]
 
 bot = commands.Bot(command_prefix=get_prefix, owner_id=122919363656286212)
 bot.uptimeStart = datetime.now()
@@ -53,14 +56,14 @@ async def on_command_completion(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.errors.CommandNotFound):
-        return
-    if isinstance(error, commands.errors.MissingPermissions):
-        await ctx.send("You do not have the proper Permissions to use this command.")
-        return
-    if isinstance(error, commands.errors.MissingRequiredArgument):
-        await ctx.send(f"You are missing required parameters. Use `-help {ctx.invoked_with}` to check what is required.")
-        return
+    # if isinstance(error, commands.errors.CommandNotFound):
+    #     return
+    # if isinstance(error, commands.errors.MissingPermissions):
+    #     await ctx.send("You do not have the proper Permissions to use this command.")
+    #     return
+    # if isinstance(error, commands.errors.MissingRequiredArgument):
+    #     await ctx.send(f"You are missing required parameters. Use `-help {ctx.invoked_with}` to check what is required.")
+    #     return
     logger.error(f"Error in {ctx.command}\n{error}")
     logger.error("".join(traceback.format_tb(error.original.__traceback__)))
     owner = bot.get_user(bot.owner_id)
