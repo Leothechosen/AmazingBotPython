@@ -56,14 +56,14 @@ async def on_command_completion(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
-    # if isinstance(error, commands.errors.CommandNotFound):
-    #     return
-    # if isinstance(error, commands.errors.MissingPermissions):
-    #     await ctx.send("You do not have the proper Permissions to use this command.")
-    #     return
-    # if isinstance(error, commands.errors.MissingRequiredArgument):
-    #     await ctx.send(f"You are missing required parameters. Use `-help {ctx.invoked_with}` to check what is required.")
-    #     return
+    if isinstance(error, commands.errors.CommandNotFound):
+        return
+    if isinstance(error, commands.errors.MissingPermissions):
+        await ctx.send("You do not have the proper Permissions to use this command.")
+        return
+    if isinstance(error, commands.errors.MissingRequiredArgument):
+        await ctx.send(f"You are missing required parameters. Use `-help {ctx.invoked_with}` to check what is required.")
+        return
     logger.error(f"Error in {ctx.command}\n{error}")
     logger.error("".join(traceback.format_tb(error.original.__traceback__)))
     owner = bot.get_user(bot.owner_id)
@@ -73,6 +73,7 @@ async def on_command_error(ctx, error):
 async def on_guild_join(guild):
     logger.info(f'AmazingBot has joined "{guild.name}"" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id} | # of members: {len(guild.members)}')
     await bot.get_user(bot.owner_id).send(f'AmazingBot has joined "{guild.name}" \nGuild_ID: {guild.id}\nOwner_ID: {guild.owner_id}\n# of members: {len(guild.members)}')
+    await database.writeGuildPrefix(guild.id, "-")
 
 @bot.event
 async def on_guild_remove(guild):
@@ -108,6 +109,7 @@ async def on_raw_reaction_remove(payload):
     except:
         logger.exception("")
     return
+
 @bot.command(hidden=True)
 @commands.is_owner()
 async def load(ctx, extension):
