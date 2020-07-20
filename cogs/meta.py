@@ -3,6 +3,16 @@ from paginator import Pages
 import discord
 import asyncio
 import itertools
+from datetime import datetime
+import logging
+import database
+import psutil
+import utils
+import apirequests
+
+
+logger = logging.getLogger("AmazingBot." + __name__)
+
 
 class HelpPaginator(Pages):
     def __init__(self, help_command, ctx, entries, *, per_page=4):
@@ -182,6 +192,156 @@ class Meta(commands.Cog):
         self.old_help_command = bot.help_command
         bot.help_command = PaginatedHelpCommand()
         bot.help_command.cog = self
+
+    @commands.command(name="restartservertime")
+    @commands.has_role("Moderators")
+    async def restartservertime(self, ctx):
+        """Moderator only. Restarts the Server Time Task"""
+        await ctx.send("Restarting the clock...")
+        self.theserverTime.start() # pylint: disable=no-member
+    
+    @commands.command(name="avatar")
+    async def avatar(self, ctx):
+        """Returns the fullsize version of the bot's avatar, made by `@owocifer` on twitter"""
+        embed = discord.Embed(title="Avatar", color=0xA9152B)
+        embed.set_image(url="https://i.imgur.com/TwEsQ4D.png")
+        embed.add_field(
+            name="Info",
+            value="AmazingBot's Avatar was made by Sel.\n https://twitter.com/owocifer \n https://www.instagram.com/sel.bro",
+            inline=False,
+        )
+        await ctx.send(embed=embed)
+        return
+
+    @commands.command(name="sourcecode", aliases=["github"])
+    async def sourcecode(self, ctx):
+        """Returns a link to AmazingBot's github"""
+        try:
+            githubrequest = await apirequests.github()
+            last_commit_time = str(
+                datetime.strptime(githubrequest[0]["commit"]["author"]["date"], "%Y-%m-%dT%H:%M:%SZ")
+            )
+            last_commit_msg = githubrequest[0]["commit"]["message"]
+            embed = discord.Embed(title="AmazingBot Source Code", color=0xA9152B)
+            embed.add_field(name="Link", value="https://github.com/Leothechosen/AmazingBotPython", inline=False)
+            embed.add_field(name="Last commit - " + last_commit_time + " UTC", value=last_commit_msg, inline=False)
+            embed.set_footer(icon_url="https://i.imgur.com/TwEsQ4D.png", text="Created on 2020-01-06 at 05:55:11 UTC")
+            await ctx.send(embed=embed)
+            return
+        except Exception as e:
+            logging.error(e)
+            return
+
+    @commands.command(name="bugreport", aliases=["bug"])    
+    async def bug_report(self, ctx, *args):
+        """If you see what you believe to be unintentional behavior, please report it through this command"""
+        if args == ():
+            await ctx.send("Usage: `-bugreport [message]`")
+            return
+        owner = self.bot.get_user(self.bot.owner_id)
+        if ctx.guild == None:
+            await owner.send(f"Error reported by {ctx.author} in a DM: {ctx.message.content}")
+        else:
+            await owner.send(f"Error reported by {ctx.author} in {ctx.guild}: {ctx.message.content}")
+        await ctx.send("Your report has been sent, thank you.")
+
+    @commands.command(name="suggestion")
+    async def suggestion(self, ctx, *args):
+        """If you have a suggestion on what else this bot should do, send it through this command"""
+        if args == ():
+            await ctx.send("Usage: `-suggestion [message]`")
+            return
+        owner = self.bot.get_user(self.bot.owner_id)
+        if ctx.guild == None:
+            await owner.send(f"Suggestion from {ctx.author} in a DM: {ctx.message.content}")
+        else:
+            await owner.send(f"Suggestion by {ctx.author} in {ctx.guild}: {ctx.message.content}")
+        await ctx.send("Your suggestion has been sent, thank you.")
+    
+    @commands.command(name="status", hidden=True)
+    @commands.is_owner()
+    async def status(self, ctx, *, status):
+        """Owner Only | Sets the bot's status in Discord"""
+        if status == "none":
+            await self.bot.change_presence(activity=None)
+            await ctx.send("Status deleted")
+        elif status == "default":
+            await self.bot.change_presence(activity=discord.Game("Created by Leo"))
+            await ctx.send("Status is now `Created By Leo`")
+        else:
+            await self.bot.change_presence(activity=discord.Game(status))
+            await ctx.send(f"Status is now {status}")
+        return
+
+    @commands.command(name="botinfo")
+    async def botinfo(self, ctx):
+        """Returns some of AmazingBot's information"""
+        embed = discord.Embed(title="AmazingBot Info", color=0xA9152B)
+        embed.add_field(name="Uptime", value= str(datetime.now() - self.bot.uptimeStart)[:-7], inline = True)
+        embed.add_field(name="Created On", value = "2019-12-28", inline=True)
+        embed.add_field(name="** **", value = "** **", inline=True)
+        embed.add_field(name="Guilds Serving", value = len(self.bot.guilds), inline=True)
+        embed.add_field(name="Users Serving", value = len(self.bot.users), inline=True)
+        embed.add_field(name="** **", value = "** **", inline=True)
+        embed.add_field(name="Bot Invite Link", value="https://discordapp.com/api/oauth2/authorize?client_id=660329366940680227&permissions=8&scope=bot", inline=True)
+        embed.set_footer(text="Created By Leo឵#8788", icon_url="https://i.imgur.com/SGmbIdj.png")
+        embed.set_thumbnail(url="https://i.imgur.com/TwEsQ4D.png")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="serverinfo")
+    async def serverinfo(self, ctx):
+        """Returns some of the server's information"""
+        features = [f'{feature}\n' for feature in ctx.guild.features]
+        logger.info(ctx.guild.icon)
+        prefix = await database.getGuildPrefix(ctx.guild.id)
+        embed = discord.Embed(title=f"{ctx.guild.name}'s Info", description=f"Server prefix: {prefix[0]}", color = 0xA9152B)
+        embed.add_field(name="Region", value=str(ctx.guild.region).title(), inline=True)
+        embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
+        embed.add_field(name="Created On", value=str(ctx.guild.created_at)[:-7], inline=True)
+        embed.add_field(name="Features", value = f"{features}", inline=True)
+        embed.add_field(name="# of Members", value=f"{ctx.guild.member_count}", inline=True)
+        embed.add_field(name="# of Boosts", value=f"{ctx.guild.premium_subscription_count}", inline=True)
+        try:
+            if ctx.guild.is_icon_animated():    
+                embed.set_thumbnail(url=ctx.guild.icon_url_as(format="gif"))
+            else:
+                embed.set_thumbnail(url=ctx.guild.icon_url_as(format="png"))
+        except:
+            pass
+        await ctx.send(embed=embed)
+
+    @commands.command(name="systeminfo")
+    async def systeminfo(self, ctx):
+        """Returns system info"""
+        cpu_msg = ""
+        for i, percentage in enumerate(psutil.cpu_percent(percpu=True)):
+            cpu_msg += f"Core {i}: {percentage}%\n"
+        sys_mem = psutil.virtual_memory()
+        sys_mem_total = await utils.get_size(sys_mem.total)
+        sys_mem_used = await utils.get_size(sys_mem.used)
+        sys_mem_perc = f"{sys_mem.percent}%"
+        embed = discord.Embed(title="AmazingBot System Info", color=0xA9152B)
+        embed.add_field(name="CPU usage", value = cpu_msg, inline=True)
+        embed.add_field(name="RAM usage", value = f"{sys_mem_used} / {sys_mem_total} ({sys_mem_perc})", inline=True)
+        await ctx.send(embed=embed)
+
+    @commands.command(name="guilds", hidden=True)
+    @commands.is_owner()
+    async def guilds(self, ctx):
+        """Returns guilds that the bot is in"""
+        guild_msg = ""
+        members_msg = ""
+        for guild in self.bot.guilds:
+            guild_msg += f"{guild}\n"
+            members_msg += f"{guild.member_count}\n"
+        embed = discord.Embed(title="Guilds AmazingBot Is In", color=0xA9152B)
+        embed.add_field(name="Guild Name", value = guild_msg, inline=True)
+        embed.add_field(name="# of Members", value = members_msg, inline=True)
+        await ctx.send(embed=embed)
+        return
+
+    
+    
 
 def setup(bot):
     bot.add_cog(Meta(bot))
