@@ -196,8 +196,7 @@ class Predictions(commands.Cog):
         rank_msg_array = []
         rank_msg = ""
         leagues_message = ""
-        league = league.upper()
-        if league == None or league not in leagues_list:
+        if league == None or league.upper() not in leagues_list:
             for x in range(len(leagues_list)):
                 leagues_message += str(x) + ": " + leagues_list[x] + "\n"
             embed = discord.Embed(title="Predictions Leaderboard", color=0xA9152B)
@@ -208,6 +207,7 @@ class Predictions(commands.Cog):
             react = await reaction_check(self, ctx, msg, original_user, reaction_list, embed)
             league = leagues_list[reaction_list.index(react[0].emoji)]
         else:
+            league = league.upper()
             embed = discord.Embed(title="Predictions: League", color=0xA9152B)
             embed.add_field(name="Processing", value = "One moment...")
             msg = await ctx.send(embed=embed)
