@@ -68,6 +68,7 @@ async def on_command_error(ctx, error):
     logger.error("".join(traceback.format_tb(error.original.__traceback__)))
     owner = bot.get_user(bot.owner_id)
     await owner.send(f'Error in {ctx.command}\n{error}')
+    await ctx.send("Sorry, but there has been an error on processing this command. A notification has been sent to Leo")
 
 @bot.event
 async def on_guild_join(guild):
