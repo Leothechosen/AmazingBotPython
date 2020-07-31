@@ -139,7 +139,7 @@ class eSports(commands.Cog):
             return
         team = await utils.sanitizeinput(team)
         team_response = await apirequests.esports(ctx, "getTeams", "id", team.lower())
-        if team_response["data"]["teams"] == []:
+        if team_response["data"]["teams"][0]["name"] == "TBD":
             await ctx.send(
                 "Invalid team name. If the team has spaces, replace the spaces with dashes. For example: Counter-Logic-Gaming. Otherwise, check spelling, or try an abbreviation, e.g TSM"
             )
