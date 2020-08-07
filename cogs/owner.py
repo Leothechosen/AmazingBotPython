@@ -14,27 +14,27 @@ class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.Cog.listener("on_ready")
+    @commands.Cog.listener()
     async def on_ready(self):
         logger.info(f"AmazingBot connected to Discord | Discord.py Version {discord.__version__}")
 
-    @commands.Cog.listener("on_connect")
+    @commands.Cog.listener()
     async def on_connect(self):
         game = discord.Game("Created By Leo")
         await self.bot.change_presence(activity=game)
 
-    @commands.Cog.listener("on_command")
+    @commands.Cog.listener()
     async def on_command(self, ctx):
         logger.info(f' Message {ctx.message.content} - User: {ctx.message.author}')
         self.bot.startTimer = datetime.now()
         await ctx.trigger_typing()
         return
 
-    @commands.Cog.listener("on_command_completion")
+    @commands.Cog.listener()
     async def on_command_completion(self, ctx):
         logger.info(f"Completed in {datetime.now() - self.bot.startTimer}")
 
-    @commands.Cog.listener("on_command_error")
+    @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.errors.CommandNotFound):
             return
@@ -50,18 +50,18 @@ class Owner(commands.Cog):
         await owner.send(f'Error in {ctx.command}\n{error}')
         await ctx.send("Sorry, but there has been an error on processing this command. A notification has been sent to Leo")
 
-    @commands.Cog.listener("on_guild_join")
+    @commands.Cog.listener()
     async def on_guild_join(self, guild):
         logger.info(f'AmazingBot has joined "{guild.name}"" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id} | # of members: {len(guild.members)}')
         await self.bot.get_user(self.bot.owner_id).send(f'AmazingBot has joined "{guild.name}" \nGuild_ID: {guild.id}\nOwner_ID: {guild.owner_id}\n# of members: {len(guild.members)}')
         await database.writeGuildPrefix(guild.id, "-")
 
-    @commands.Cog.listener("on_guild_remove")
+    @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         logger.info(f'AmazingBot was removed from "{guild.name}" | Guild_ID: {guild.id} | Owner_ID: {guild.owner_id}')
         await self.bot.get_user(self.bot.owner_id).send(f'AmazingBot was removed from "{guild.name}"\nGuild_ID: {guild.id}\nOwner_ID: {guild.owner_id}')
 
-    @commands.Cog.listener("on_raw_reaction_add")
+    @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         try:
             if payload.message_id != 701341554287181884:
@@ -76,7 +76,7 @@ class Owner(commands.Cog):
             logger.exception("")
         return
 
-    @commands.Cog.listener("on_raw_reaction_remove")
+    @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
         try:
             if payload.message_id != 701341554287181884:
