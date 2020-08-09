@@ -171,7 +171,7 @@ class Misc(commands.Cog):
             await discord.Message.add_reaction(reactionRoleMsg, reactions[reaction])
         return
 
-    @tasks.loop(minutes=5.0)
+    @tasks.loop(seconds=301)
     async def theserverTime(self):
         allGuildSettings = await database.getAllGuildSettings()
         fmt = "%H:%M %Z"
@@ -195,7 +195,7 @@ class Misc(commands.Cog):
             logger.info(minutecheck-secondcheck)
             await asyncio.sleep(minutecheck-secondcheck)
         else:
-            secondcheck = 61-secondcheck
+            secondcheck = 62-secondcheck
             logger.info(secondcheck)
             await asyncio.sleep(secondcheck)
 
