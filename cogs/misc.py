@@ -195,7 +195,7 @@ class Misc(commands.Cog):
             logger.info(minutecheck-secondcheck)
             await asyncio.sleep(minutecheck-secondcheck)
         else:
-            secondcheck = 62-secondcheck
+            secondcheck = 61-secondcheck
             logger.info(secondcheck)
             await asyncio.sleep(secondcheck)
 
