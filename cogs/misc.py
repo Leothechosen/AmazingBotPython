@@ -14,6 +14,7 @@ import database
 import matplotlib.pyplot as plt
 import psutil
 import platform
+import traceback
 
 logger = logging.getLogger("AmazingBot." + __name__)
 load_dotenv()
@@ -198,6 +199,16 @@ class Misc(commands.Cog):
             secondcheck = 61-secondcheck
             logger.info(secondcheck)
             await asyncio.sleep(secondcheck)
+
+    @theserverTime.error
+    async def server_time_error(self, error):
+        error_type = type(error)
+        stacktrace = error.__traceback__
+        verbosity = 4
+        lines = traceback.format_exception(error_type, error, stacktrace, verbosity)
+        traceback_text = "".join(lines)
+        logger.error(f"Server Time Loop Error \n{traceback_text})")
+        return
 
 def setup(bot):
     bot.add_cog(Misc(bot))
