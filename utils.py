@@ -27,7 +27,7 @@ async def integerPrefix(ordinal):
         "19": "19th",
         "20": "20th",
     }
-    return switcher.get(ordinal, "???")
+    return switcher.get(str(ordinal), "???")
 
 
 async def getTournamentId(tournament):
