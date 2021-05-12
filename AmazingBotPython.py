@@ -28,7 +28,8 @@ async def get_prefix(bot, message):
     except:
         return "-"
 
-bot = commands.Bot(command_prefix=get_prefix, owner_id=122919363656286212)
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=get_prefix, owner_id=122919363656286212, intents=intents)
 bot.uptimeStart = datetime.now()
 
 @bot.command(hidden=True)
