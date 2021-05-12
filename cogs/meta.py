@@ -192,13 +192,6 @@ class Meta(commands.Cog):
         self.old_help_command = bot.help_command
         bot.help_command = PaginatedHelpCommand()
         bot.help_command.cog = self
-
-    @commands.command(name="restartservertime")
-    @commands.has_role("Moderators")
-    async def restartservertime(self, ctx):
-        """Moderator only. Restarts the Server Time Task"""
-        await ctx.send("Restarting the clock...")
-        self.theserverTime.start() # pylint: disable=no-member
     
     @commands.command(name="avatar")
     async def avatar(self, ctx):
@@ -292,9 +285,11 @@ class Meta(commands.Cog):
     async def serverinfo(self, ctx):
         """Returns some of the server's information"""
         features = [f'{feature}\n' for feature in ctx.guild.features]
-        logger.info(ctx.guild.icon)
         prefix = await database.getGuildPrefix(ctx.guild.id)
-        embed = discord.Embed(title=f"{ctx.guild.name}'s Info", description=f"Server prefix: {prefix[0]}", color = 0xA9152B)
+        if prefix:
+            embed = discord.Embed(title=f"{ctx.guild.name}'s Info", description=f"Server prefix: {prefix[0]}", color = 0xA9152B)
+        else:
+            embed = discord.Embed(title=f"{ctx.guild.name}'s Info", description=f"Server prefix: -", color = 0xA9152B)
         embed.add_field(name="Region", value=str(ctx.guild.region).title(), inline=True)
         embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
         embed.add_field(name="Created On", value=str(ctx.guild.created_at)[:-7], inline=True)
