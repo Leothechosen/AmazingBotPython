@@ -159,7 +159,6 @@ class Misc(commands.Cog):
         os.remove("test.png")
         return
 
-
     @commands.command(name="reactionroles", hidden=True)
     @commands.is_owner()
     async def reactionroles(self, ctx):
@@ -172,7 +171,18 @@ class Misc(commands.Cog):
             await discord.Message.add_reaction(reactionRoleMsg, reactions[reaction])
         return
 
-    @tasks.loop(seconds=301)
+    @commands.command(name="restartservertime")
+    @commands.has_role("Moderators")
+    async def restartservertime(self, ctx):
+        """Moderator only. Restarts the Server Time Task"""
+        await ctx.send("Restarting the clock...")
+        try:
+            self.theserverTime.stop()
+        except:
+            pass
+        self.theserverTime.start() # pylint: disable=no-member
+
+    @tasks.loop(seconds=310)
     async def theserverTime(self):
         allGuildSettings = await database.getAllGuildSettings()
         fmt = "%H:%M %Z"
@@ -181,7 +191,13 @@ class Misc(commands.Cog):
                 channel_for_servertime = self.bot.get_channel(id=guild[1])
                 serverTime = datetime.now(timezone(guild[2]))
                 serverTime = serverTime.strftime(fmt)
-                await channel_for_servertime.edit(name=serverTime)
+                try:
+                    await channel_for_servertime.edit(name=serverTime)
+                except Exception as e:
+                    owner = self.bot.get_user(self.bot.owner_id)
+                    server = self.bot.get_guild(guild[0])
+                    await owner.send(f"Error in ServerTime: {guild}, {server.name}")
+                    await owner.send(f"{e}")
                 await asyncio.sleep(0.1)
     
     @theserverTime.before_loop
@@ -203,12 +219,21 @@ class Misc(commands.Cog):
     @theserverTime.error
     async def server_time_error(self, error):
         error_type = type(error)
+        logger.info(f"Type of error: {error_type}")
         stacktrace = error.__traceback__
         verbosity = 4
         lines = traceback.format_exception(error_type, error, stacktrace, verbosity)
         traceback_text = "".join(lines)
         logger.error(f"Server Time Loop Error \n{traceback_text})")
         return
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def respond(self, ctx):
+        amazing_guild = self.bot.get_guild(654100829338599445)
+        announcement_text_channel = amazing_guild.get_channel(654107634550702090)
+        amazing_message = announcement_text_channel.get_partial_message(839958468177035344)
+        await amazing_message.reply(content="Make me, nerd.")
 
 def setup(bot):
     bot.add_cog(Misc(bot))
