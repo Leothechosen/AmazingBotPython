@@ -79,6 +79,11 @@ async def createdb():
         channel_id integer,
         timezone text
     )
+
+    CREATE TABLE AmazingClips (
+        id text
+    )
+
 	INSERT INTO League(code, name) VALUES ("lcs", "LCS");
 	INSERT INTO League(code, name) VALUES ("lec", "LEC");
 	INSERT INTO League(code, name) VALUES ("lck", "LCK");
@@ -194,7 +199,6 @@ async def checkdiscord(ctx):
         c.execute("INSERT INTO User(discord_id, name) VALUES (?, ?)", (ctx.author.id, ctx.author.name))
     conn.commit()
     conn.close()
-
 
 async def updatematch(ctx):
     conn = sqlite3.connect("AmazingBot.db")
@@ -321,7 +325,6 @@ async def updatematch(ctx):
     await session.close()
     return True
 
-
 async def get_next_block_and_matches(league_name):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
@@ -337,7 +340,6 @@ async def get_next_block_and_matches(league_name):
     matches = c.fetchall()
     return block_name, matches
 
-
 async def fetchTeamIds(team_1, team_2):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
@@ -347,7 +349,6 @@ async def fetchTeamIds(team_1, team_2):
     team_2 = c.fetchone()[0]
     conn.close()
     return team_1, team_2
-
 
 async def writePredictions(predicted_team, match, user):
     predictioncheck = None
@@ -371,7 +372,6 @@ async def writePredictions(predicted_team, match, user):
     conn.commit()
     conn.close()
 
-
 async def fetchLeaguesPredicted(user):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
@@ -382,7 +382,6 @@ async def fetchLeaguesPredicted(user):
     predicted_leagues = c.fetchall()
     conn.close()
     return predicted_leagues
-
 
 async def fetchBlocksPredicted(user, league):
     conn = sqlite3.connect("AmazingBot.db")
@@ -414,7 +413,6 @@ async def fetchBlocksPredicted(user, league):
     blocks_pred = c.fetchall()
     conn.close()
     return blocks_pred
-
 
 async def fetchPredictions(user, league, block_name):
     conn = sqlite3.connect("AmazingBot.db")
@@ -455,7 +453,6 @@ async def fetchPredictions(user, league, block_name):
     user_predictions = c.fetchall()
     conn.close()
     return user_predictions
-
 
 async def fetchCorrect(league, discord_id):
     conn = sqlite3.connect("AmazingBot.db")
@@ -501,7 +498,6 @@ async def fetchCorrect(league, discord_id):
         wrong_pred_msg += str(league_overall[1])
     conn.close()
     return block_name_msg, correct_pred_msg, wrong_pred_msg
-
 
 async def fetchLeaderboard(league):
     conn = sqlite3.connect("AmazingBot.db")
@@ -695,6 +691,23 @@ async def writeGuildPrefix(guild_id:int, new_prefix:str):
         c.execute("INSERT INTO GuildSettings (guild_id, prefix) VALUES (?, ?)", (guild_id, new_prefix))
     else:
         c.execute("UPDATE GuildSettings SET prefix = ? WHERE guild_id = ?", (new_prefix, guild_id))
+    conn.commit()
+    conn.close()
+    return
+
+async def getCurrentClips():
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.row_factory = lambda cursor, row: row[0]
+    c.execute("SELECT * From AmazingClips")
+    currentClips = c.fetchall()
+    conn.close()
+    return currentClips
+
+async def addClip(clipID):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute("INSERT INTO AmazingClips (id) VALUES (?)", (clipID,))
     conn.commit()
     conn.close()
     return
