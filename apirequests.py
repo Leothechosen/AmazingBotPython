@@ -1,9 +1,5 @@
-import asyncio
-import re
-import discord
 import aiohttp
 import os
-import pytz
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import logging

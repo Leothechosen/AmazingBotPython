@@ -1,11 +1,9 @@
 import logging
-import os
 import discord
 import database
 import utils
 import traceback
 from datetime import datetime
-from dotenv import load_dotenv
 from discord.ext import commands
 
 logger = logging.getLogger("AmazingBot." + __name__)

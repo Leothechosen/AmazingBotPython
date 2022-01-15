@@ -2,9 +2,8 @@ import discord
 import asyncio
 import os
 import utils
-import pytz
 from pytz import timezone
-from datetime import datetime, timedelta
+from datetime import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import apirequests
@@ -12,8 +11,6 @@ import logging
 import random
 import database
 #import matplotlib.pyplot as plt
-import psutil
-import platform
 import traceback
 
 logger = logging.getLogger("AmazingBot." + __name__)
@@ -188,7 +185,7 @@ class Misc(commands.Cog):
         fmt = "%H:%M %Z"
         for guild in allGuildSettings:
             if guild[1] is not None:
-                channel_for_servertime = self.bot.get_channel(id=guild[1])
+                channel_for_servertime = self.bot.get_channel(guild[1])
                 serverTime = datetime.now(timezone(guild[2]))
                 serverTime = serverTime.strftime(fmt)
                 try:

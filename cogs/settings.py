@@ -1,8 +1,6 @@
-import discord
 import database
 import logging
 import pytz
-from datetime import datetime
 from discord.ext import commands
 
 logger = logging.getLogger(f"AmazingBot.{__name__}")

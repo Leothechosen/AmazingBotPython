@@ -1,7 +1,4 @@
 import discord
-import asyncio
-import os
-import utils
 import apirequests
 from discord.ext import commands
 import logging

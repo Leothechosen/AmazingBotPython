@@ -1,9 +1,6 @@
 import aiohttp
-import asyncio
 import sqlite3
 import logging
-import apirequests
-
 logger = logging.getLogger("AmazingBot." + __name__)
 
 

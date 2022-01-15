@@ -1,6 +1,4 @@
 import discord
-import aiohttp
-import asyncio
 import os
 import random
 import apirequests

@@ -1,6 +1,5 @@
 import discord
 import asyncio
-import math
 from discord.ext import commands
 import logging
 

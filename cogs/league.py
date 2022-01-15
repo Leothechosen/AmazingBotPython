@@ -1,6 +1,4 @@
 import discord
-import aiohttp
-import asyncio
 import utils
 import apirequests
 from discord.ext import commands

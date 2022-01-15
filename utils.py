@@ -1,7 +1,5 @@
-import asyncio
 import re
-import discord
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 async def integerPrefix(ordinal):

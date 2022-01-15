@@ -1,9 +1,6 @@
 import discord
-import asyncio
-import math
 import utils
 import apirequests
-from pytz import timezone
 from datetime import datetime, timedelta
 from discord.ext import commands
 import logging
