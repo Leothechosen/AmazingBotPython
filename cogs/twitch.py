@@ -39,6 +39,7 @@ class Twitch(commands.Cog):
         self.streamlive = True
         self.amazingStream.start() # pylint: disable=no-member
         self.amazingClips.start() # pylint: disable=no-member
+        # self.amazingSubs.start() # pylint: disable=no-member
 
     @tasks.loop(minutes=1.0)
     async def amazingStream(self):
@@ -51,11 +52,18 @@ class Twitch(commands.Cog):
             logger.info("Amazing has gone offline")
         # If live while code thinks stream isn't live
         elif twitchrequest["stream"] != None and self.streamlive == False:
-            await announcementchannel.send(
-                "@everyone " + random.choice(announcements) + " https://www.twitch.tv/amazingx"
-            )
+            announcement = random.choice(announcements)
+            if announcements.index(announcement) == 11:
+                with open("who-is-amazing.png", "rb") as f:
+                    picture = discord.File(f)
+                    await announcementchannel.send(content="@everyone https://www.twitch.tv/amazingx", file=picture)
+            else:
+                await announcementchannel.send(
+                    "@everyone " + announcement + " https://www.twitch.tv/amazingx"
+                )
             self.streamlive = True
             logger.info("Amazing has gone online")
+        return
 
     @amazingStream.before_loop
     async def amazingStreamBefore(self):
@@ -74,12 +82,39 @@ class Twitch(commands.Cog):
             if clip["id"] in clips_in_database:
                 pass
             else:
-                await clips_channel.send(f"A new clip has been created by {clip['creator_name']}\n{clip['url']}")
-                await database.addClip(clip["id"])
+                clips_message = await clips_channel.send(f"A new clip has been created by {clip['creator_name']}\n{clip['url']}")
+                await database.addClip(clip["id"], clips_message.id)
     
     @amazingClips.before_loop
     async def amazingClipsBefore(self):
         await self.bot.wait_until_ready()
 
+    @commands.command()
+    @commands.has_role(654107107171237908) #Mod role in Amazing Server
+    async def removeclip(self, ctx, clip_id):
+        clip_message_id = await database.getClipMessageID(clip_id)
+        if len(clips) != 1:
+            await ctx.send("Sorry, the clip_id you sent has returned more than one result. Please use a longer clip_id")
+            return
+        if clip_message_id[0] is None:
+            await ctx.send("Sorry, the clip that you've requested does not have an associated message id. Please go manually delete it.")
+            return
+        clip_message = await ctx.fetch_message(clip_message_id[0])
+        await clip_message.delete()
+
+    # @tasks.loop(minutes=1.0)
+    # async def amazingSubs(self):
+    #     subsrequest = await apirequests.twitch_subs(amazing)
+    #     logger.info(subsrequest)
+    
+    # @amazingSubs.before_loop
+    # async def amazingSubsBefore(self):
+    #     await self.bot.wait_until_ready()
+    
+    # #Automatic Sub Role
+    # #Either subscribe to Subscription events or constantly check Subs via API
+    # #When a new sub is detected, send them a random string and instruct them to send it to AmazingBot
+    # #Once AmazingBot gets the message, store the discord-twitch relationship in a database and check every so often if people are still subscribed.
+    
 def setup(bot):
     bot.add_cog(Twitch(bot))
