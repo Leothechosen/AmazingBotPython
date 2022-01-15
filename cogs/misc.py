@@ -11,7 +11,7 @@ import apirequests
 import logging
 import random
 import database
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import psutil
 import platform
 import traceback
@@ -128,36 +128,36 @@ class Misc(commands.Cog):
         await ctx.send(embed=embed)
         return
 
-    @commands.command(name="online")
-    async def piechart(self, ctx):
-        """Returns a pie chart of users online, idle, DND, and offline"""
-        online = 0
-        offline = 0
-        dnd = 0
-        idle = 0
-        for member in ctx.guild.members:
-            status = str(member.status)
-            if status == "online":
-                online += 1
-            elif status == "idle":
-                idle += 1
-            elif status == "dnd" or status == "do_not_disturb":
-                dnd += 1
-            elif status  == "offline" or status == "invisible":
-                offline += 1
-            else:
-                logger.info(f"Error with member: {member} | Status: {member.status}")
-        total = online+offline+dnd+idle
-        labels = f'Online ({online})', f'Idle ({idle})', f'DND ({dnd})', f'Offline ({offline})'
-        slices = (online/total, idle/total, dnd/total, offline/total)
-        fig, axes = plt.subplots()
-        axes.pie(slices, labels = labels, autopct = '%.1f%%', colors=("green", "orange", "red", "DarkGray"))
-        axes.axis('equal')
-        axes.margins(tight=True)
-        fig.savefig("test.png")
-        await ctx.send(file=discord.File('test.png'))
-        os.remove("test.png")
-        return
+    # @commands.command(name="online")
+    # async def piechart(self, ctx):
+    #     """Returns a pie chart of users online, idle, DND, and offline"""
+    #     online = 0
+    #     offline = 0
+    #     dnd = 0
+    #     idle = 0
+    #     for member in ctx.guild.members:
+    #         status = str(member.status)
+    #         if status == "online":
+    #             online += 1
+    #         elif status == "idle":
+    #             idle += 1
+    #         elif status == "dnd" or status == "do_not_disturb":
+    #             dnd += 1
+    #         elif status  == "offline" or status == "invisible":
+    #             offline += 1
+    #         else:
+    #             logger.info(f"Error with member: {member} | Status: {member.status}")
+    #     total = online+offline+dnd+idle
+    #     labels = f'Online ({online})', f'Idle ({idle})', f'DND ({dnd})', f'Offline ({offline})'
+    #     slices = (online/total, idle/total, dnd/total, offline/total)
+    #     fig, axes = plt.subplots()
+    #     axes.pie(slices, labels = labels, autopct = '%.1f%%', colors=("green", "orange", "red", "DarkGray"))
+    #     axes.axis('equal')
+    #     axes.margins(tight=True)
+    #     fig.savefig("test.png")
+    #     await ctx.send(file=discord.File('test.png'))
+    #     os.remove("test.png")
+    #     return
 
     @commands.command(name="reactionroles", hidden=True)
     @commands.is_owner()
