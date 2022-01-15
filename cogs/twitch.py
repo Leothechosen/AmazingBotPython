@@ -44,7 +44,7 @@ class Twitch(commands.Cog):
     @tasks.loop(minutes=1.0)
     async def amazingStream(self):
         announcementchannel = int(os.getenv("AMAZING_ANNOUNCEMENT_ID"))
-        announcementchannel = self.bot.get_channel(id=announcementchannel)
+        announcementchannel = self.bot.get_channel(announcementchannel)
         twitchrequest = await apirequests.twitch(amazing)
         # If not live while code thinks stream is live
         if twitchrequest["stream"] == None and self.streamlive == True:
@@ -72,7 +72,7 @@ class Twitch(commands.Cog):
     @tasks.loop(minutes=5.0)
     async def amazingClips(self):
         clips_channel = int(os.getenv("AMAZING_CLIPS_CHANNEL"))
-        clips_channel = self.bot.get_channel(id=clips_channel)
+        clips_channel = self.bot.get_channel(clips_channel)
         clipsrequest = await apirequests.clips(amazing)
         if clipsrequest is None:
             return
@@ -93,7 +93,7 @@ class Twitch(commands.Cog):
     @commands.has_role(654107107171237908) #Mod role in Amazing Server
     async def removeclip(self, ctx, clip_id):
         clip_message_id = await database.getClipMessageID(clip_id)
-        if len(clips) != 1:
+        if len(clip_message_id) != 1:
             await ctx.send("Sorry, the clip_id you sent has returned more than one result. Please use a longer clip_id")
             return
         if clip_message_id[0] is None:
