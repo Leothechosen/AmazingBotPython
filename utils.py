@@ -33,20 +33,20 @@ async def integerPrefix(ordinal):
 async def getTournamentId(tournament):
     tournament = tournament.upper()
     switcher = {
-        "LCS": "104174992692075107",
-        "LEC": "104169295253189561",
-        "LCK": "104174613295388764",
-        "LPL": "104282610668475466",
-        "OPL": "104151038596540368",
-        "CBLOL": "104202471497759152",
-        "TCL": "104248884617992857",
-        "LJL": "104169308670244006",
-        "LCSA": "104174601803063383",
+        "LCS": "105658534671026792", # LCS Spring 2022 doesnt exist yet.
+        "LEC": "107417059262120466", # Spring 2022
+        "LCK": "107418445247362001", # Spring 2022
+        "LPL": "107417779630700437", # Spring 2022
+        "OPL": "104151038596540368", # Dissolved
+        "CBLOL": "107405837336179496", # 2022 Split 1
+        "TCL": "107566408953200568", # Winter 2022
+        "LJL": "106269757536651711", # LJL Spring 2022 doesnt exist yet.
+        "LCSA": "107418086627198298", # Spring 2022
     }
     return switcher.get(tournament, "Invalid League")
 
 
-async def getLeagueId(league):
+async def getLeagueId(league): # Represents each region, not the splits/events they play.
     league = league.upper()
     switcher = {
         "EUM": "100695891328981122",
@@ -59,7 +59,7 @@ async def getLeagueId(league):
         "LCK": "98767991310872058",
         "LPL": "98767991314006698",
         "MSI": "98767991325878492",
-        "OPL": "98767991331560952",
+        "OPL": "98767991331560952", # Dissolved
         "CBLOL": "98767991332355509",
         "TCL": "98767991343597634",
         "NAC": "98767991349120232",
