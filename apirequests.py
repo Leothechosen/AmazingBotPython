@@ -85,7 +85,7 @@ async def lor(ctx, region, endpoint, param, paramId):
 
 async def twitch_oauth():
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"https://id.twitch.tv/oauth2/token?client_id={twitchapikey}&client_secret={twitchapisecret}&grant_type=client_credentials") as response:
+        async with session.post(f"https://id.twitch.tv/oauth2/token?client_id={twitchapikey}&client_secret={twitchapisecret}&grant_type=client_credentials&scope=channel:read:subscriptions") as response:
             oauthrequest = await response.json()
             logger.info(oauthrequest)
             global token_expire_time
@@ -93,7 +93,7 @@ async def twitch_oauth():
             global twitch_oauth_token
             twitch_oauth_token = oauthrequest["access_token"]
             logger.info(f"Twitch OAUTH Token: {twitch_oauth_token} expires at {token_expire_time}")
-        session.close()
+        await session.close()
     return
 
 async def twitch(user):
@@ -107,6 +107,24 @@ async def twitch(user):
             twitchrequest = await response.json()
         await session.close()
     return twitchrequest
+
+# TODO: Need User Access Token
+# async def twitch_subs(user):
+#     if twitch_oauth_token is None:
+#         await twitch_oauth()
+#     elif datetime.now() > token_expire_time:
+#         await twitch_oauth()
+#     headers = {"Authorization": f"Bearer {twitch_oauth_token}", "Client-ID": twitchapikey}
+#     async with aiohttp.ClientSession() as session:
+#         async with session.get(f"https://api.twitch.tv/helix/subscriptions?broadcaster_id={user}", headers=headers) as response:
+#             if response.status != 200:
+#                 logger.warning(f"Twitch API returned a {response.status} response code in Clips.")
+#                 response = await response.json()
+#                 logger.info(response)
+#                 return None
+#             response = await response.json()
+#         await session.close()
+#     return response
 
 async def clips(user):
     # Twitch Get Clips will only return clips in order of views, which impedes with posting a new clip when it's generated
@@ -130,7 +148,7 @@ async def clips(user):
                 logger.warning(f"Twitch API returned a {response.status} response code in Clips.")
                 return None
             response = await response.json()
-        session.close()
+        await session.close()
     return response
 
 async def github():
