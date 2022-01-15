@@ -13,7 +13,7 @@ class Settings(commands.Cog):
     
     @commands.command(name="servertime")
     @commands.has_guild_permissions(administrator=True)
-    async def servertime(self, ctx, channel_id, timezone):
+    async def servertime(self, ctx, channel_id, timezone = None):
         """Admin only | Set a channel to keep track of the Server's given timezone | `-servertime delete` will delete the server's settings"""
         if channel_id == "delete":
             await database.writeGuildSettings(ctx.guild.id, None, None)
