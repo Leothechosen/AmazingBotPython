@@ -704,10 +704,18 @@ async def getCurrentClips():
     conn.close()
     return currentClips
 
-async def addClip(clipID):
+async def addClip(clipID, messageID):
     conn = sqlite3.connect("AmazingBot.db")
     c = conn.cursor()
-    c.execute("INSERT INTO AmazingClips (id) VALUES (?)", (clipID,))
+    c.execute("INSERT INTO AmazingClips (id, messageID) VALUES (?, ?)", (clipID, messageID))
     conn.commit()
     conn.close()
     return
+
+async def getClipMessageID(clipID):
+    conn = sqlite3.connect("AmazingBot.db")
+    c = conn.cursor()
+    c.execute('SELECT messageID FROM AmazingClips WHERE id LIKE "?%"', (clipID,))
+    clip_msg_id = c.fetchall()
+    conn.close()
+    return clip_msg_id
