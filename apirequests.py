@@ -9,7 +9,7 @@ logger = logging.getLogger("AmazingBot." + __name__)
 load_dotenv()
 leagueapikey = os.getenv("LEAGUE_API_KEY")
 runeterraapikey = os.getenv("RUNETERRA_API_KEY")
-twitchapikey = os.getenv("TWITCH_API_KEY")
+twitchapiclient = os.getenv("TWITCH_API_CLIENT_ID")
 twitchapisecret = os.getenv("TWITCH_API_SECRET")
 esportsapikey = os.getenv("ESPORTS_API_KEY")
 githubapikey = os.getenv("GITHUB_API_KEY")
@@ -81,7 +81,7 @@ async def lor(ctx, region, endpoint, param, paramId):
 
 async def twitch_oauth():
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"https://id.twitch.tv/oauth2/token?client_id={twitchapikey}&client_secret={twitchapisecret}&grant_type=client_credentials&scope=channel:read:subscriptions") as response:
+        async with session.post(f"https://id.twitch.tv/oauth2/token?client_id={twitchapiclient}&client_secret={twitchapisecret}&grant_type=client_credentials&scope=channel:read:subscriptions") as response:
             oauthrequest = await response.json()
             logger.info(oauthrequest)
             global token_expire_time
@@ -93,13 +93,16 @@ async def twitch_oauth():
     return
 
 async def twitch(user):
-    headers = {"Accept": "application//vnd.twitchtv.v5+json", "Client-ID": twitchapikey}
+    if not twitch_oauth_token: 
+        await twitch_oauth()
+    headers = {"Client-Id": twitchapiclient, "Authorization": f"Bearer {twitch_oauth_token}"}
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            "https://api.twitch.tv/kraken/streams/" + user + "?api_verson=5", headers=headers
+            f"https://api.twitch.tv/helix/streams?user_id={user}", headers=headers
         ) as response:
             if response.status != 200:
                 logger.warning(f'Twitch API returned a {response.status} response code.')
+                return False
             twitchrequest = await response.json()
         await session.close()
     return twitchrequest
@@ -110,7 +113,7 @@ async def twitch(user):
 #         await twitch_oauth()
 #     elif datetime.now() > token_expire_time:
 #         await twitch_oauth()
-#     headers = {"Authorization": f"Bearer {twitch_oauth_token}", "Client-ID": twitchapikey}
+#     headers = {"Authorization": f"Bearer {twitch_oauth_token}", "Client-ID": twitchapiclient}
 #     async with aiohttp.ClientSession() as session:
 #         async with session.get(f"https://api.twitch.tv/helix/subscriptions?broadcaster_id={user}", headers=headers) as response:
 #             if response.status != 200:
@@ -133,7 +136,7 @@ async def clips(user):
         await twitch_oauth()
     elif datetime.now() > token_expire_time:
         await twitch_oauth()
-    headers = {"Authorization": f"Bearer {twitch_oauth_token}", "Client-ID": twitchapikey}
+    headers = {"Authorization": f"Bearer {twitch_oauth_token}", "Client-ID": twitchapiclient}
     started_at = datetime.utcnow() - timedelta(days=1)
     started_at = started_at.isoformat("T") + "Z"
     async with aiohttp.ClientSession() as session:

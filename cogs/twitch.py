@@ -28,7 +28,7 @@ announcements = [
     "I want to date Amazing so bad. He is so cute and I love him so much. He has a cute smile and a cute face. He’s a gamer like me and has a amazing personality. I would love to tell him every night “I love you” and rub his feet while he is streaming We would go out when he isn’t doing gamer stuff and have fun together. He is also really good at gaming so I would be able to get carried by my very own BF. God I want to date Amazing",
     "Who is amazing? 🙄🤭🤔🤫😰 in math: my solution ➗😊 in history: my king 👑😣 in art: my canvas 🎨🥳 in science: my oxygen 💨😝 in geography: my world 🌎🤯",
     "Last Saturday, I found Amazing wet and unconscious on a beach. I quickly asked a lifeguard to watch over him while I get help. The lifeguard walks away muttering that he 'doesnt watch washed up streamers'",
-    "Jungle too complicated. I'd like to just rightclick the minimap once and autoclear every camp. Also: recalling should be automated once I killed the crab, else the skill ceiling is too high to differentiate between good and bad players"
+    "Jungle too complicated. I'd like to just rightclick the minimap once and autoclear every camp. Also: recalling should be automated once I killed the crab, else the skill ceiling is too high to differentiate between good and bad players",
 ]
 
 class Twitch(commands.Cog):
@@ -45,23 +45,24 @@ class Twitch(commands.Cog):
         announcementchannel = self.bot.get_channel(announcementchannel)
         twitchrequest = await apirequests.twitch(amazing)
         # If not live while code thinks stream is live
-        if twitchrequest["stream"] == None and self.streamlive == True:
-            self.streamlive = False
-            logger.info("Amazing has gone offline")
-        # If live while code thinks stream isn't live
-        elif twitchrequest["stream"] != None and self.streamlive == False:
-            announcement = random.choice(announcements)
-            if announcements.index(announcement) == 11:
-                with open("who-is-amazing.png", "rb") as f:
-                    picture = discord.File(f)
-                    await announcementchannel.send(content="@everyone https://www.twitch.tv/amazingx", file=picture)
-            else:
-                await announcementchannel.send(
-                    "@everyone " + announcement + " https://www.twitch.tv/amazingx"
-                )
-            self.streamlive = True
-            logger.info("Amazing has gone online")
-        return
+        if twitchrequest:
+            if twitchrequest["data"] == [] and self.streamlive == True:
+                self.streamlive = False
+                logger.info("Amazing has gone offline")
+            # If live while code thinks stream isn't live
+            elif twitchrequest["data"] != [] and self.streamlive == False:
+                announcement = random.choice(announcements)
+                if announcements.index(announcement) == 11:
+                    with open("who-is-amazing.png", "rb") as f:
+                        picture = discord.File(f)
+                        await announcementchannel.send(content="@everyone https://www.twitch.tv/amazingx", file=picture)
+                else:
+                    await announcementchannel.send(
+                        "@everyone " + announcement + " https://www.twitch.tv/amazingx"
+                    )
+                self.streamlive = True
+                logger.info("Amazing has gone online")
+            return
 
     @amazingStream.before_loop
     async def amazingStreamBefore(self):
