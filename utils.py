@@ -28,43 +28,48 @@ async def integerPrefix(ordinal):
     return switcher.get(str(ordinal), "???")
 
 
-async def getTournamentId(tournament):
-    tournament = tournament.upper()
-    switcher = {
+async def getTournamentId(tournament=None):
+    tournaments = {
         "LCS": "105658534671026792", # LCS Spring 2022 doesnt exist yet.
         "LEC": "107417059262120466", # Spring 2022
         "LCK": "107418445247362001", # Spring 2022
         "LPL": "107417779630700437", # Spring 2022
-        "OPL": "104151038596540368", # Dissolved
         "CBLOL": "107405837336179496", # 2022 Split 1
         "TCL": "107566408953200568", # Winter 2022
         "LJL": "106269757536651711", # LJL Spring 2022 doesnt exist yet.
         "LCSA": "107418086627198298", # Spring 2022
+        #"OPL": "104151038596540368", Dissolved
     }
-    return switcher.get(tournament, "Invalid League")
+    if tournament is None:
+        return tournaments
+    else:
+        tournament = tournament.upper()
+        return tournaments.get(tournament, "Invalid League")
 
 
-async def getLeagueId(league): # Represents each region, not the splits/events they play.
-    league = league.upper()
-    switcher = {
-        "EUM": "100695891328981122",
-        "TAL": "101097443346691685",
-        "LLA": "101382741235120470",
-        "WORLDS": "98767975604431411",
-        "ALL-STARS": "98767991295297326",
+async def getLeagueId(league=None): # Represents each region, not the splits/events they play.
+    leagues = {
         "LCS": "98767991299243165",
         "LEC": "98767991302996019",
         "LCK": "98767991310872058",
         "LPL": "98767991314006698",
-        "MSI": "98767991325878492",
-        "OPL": "98767991331560952", # Dissolved
         "CBLOL": "98767991332355509",
         "TCL": "98767991343597634",
-        "NAC": "98767991349120232",
-        "LCSA": "99332500638116286",
         "LJL": "98767991349978712",
+        "LCSA": "99332500638116286",
+        # "NAC": "98767991349120232",
+        # "OPL": "98767991331560952", # Dissolved
+        # "EUM": "100695891328981122",
+        # "TAL": "101097443346691685",
+        # "LLA": "101382741235120470",
+        # "WORLDS": "98767975604431411",
+        # "ALL-STARS": "98767991295297326",
+        # "MSI": "98767991325878492",
     }
-    return switcher.get(league, "Invalid League")
+    if league is None:
+        return leagues
+    else:
+        return leagues.get(league, "Invalid League")
 
 
 async def sanitizeinput(inputs):

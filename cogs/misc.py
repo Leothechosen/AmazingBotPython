@@ -231,7 +231,7 @@ class Misc(commands.Cog):
         announcement_text_channel = amazing_guild.get_channel(654107634550702090)
         amazing_message = announcement_text_channel.get_partial_message(846784333107822602)
         await amazing_message.reply(content="Make me, nerd.")
-        await ctx.message.delete()        
+        await ctx.message.delete() 
 
 def setup(bot):
     bot.add_cog(Misc(bot))

@@ -329,7 +329,9 @@ async def get_next_block_and_matches(league_name):
         "SELECT DISTINCT o.block_name FROM Match o WHERE o.id_league = (SELECT id FROM League WHERE name = ?) and strftime('%Y-%m-%dT%H-%M-%SZ', 'now') < (SELECT min(i.start_time) FROM Match i WHERE i.id_league = (SELECT id FROM League WHERE name = ?) and i.block_name = o.block_name) ORDER BY start_time",
         (league_name, league_name),
     )
-    block_name = c.fetchone()[0]
+    block_name = c.fetchone()
+    logger.info(block_name)
+    block_name = block_name[0]
     c.execute(
         "SELECT * from Match WHERE id_league = (SELECT id FROM league WHERE name = ?) and block_name = ?",
         (league_name, block_name),
